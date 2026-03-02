@@ -99,8 +99,7 @@ echo -e "${CYAN}📦 安装服务...${RESET}"
 
 # 复制 CLI
 echo "  复制 CLI..."
-mkdir -p "$OPENCLAW_SERVICES_HOME/cli/src"
-cp "$SOURCE_DIR/cli/src/index.js" "$OPENCLAW_SERVICES_HOME/cli/src/"
+cp -r "$SOURCE_DIR/cli" "$OPENCLAW_SERVICES_HOME/"
 
 # 复制 services
 echo "  复制 services..."
