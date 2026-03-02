@@ -14,3 +14,4 @@ data/*.json
 # IDE
 .vscode/
 .idea/
+dist/

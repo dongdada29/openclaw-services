@@ -7,15 +7,13 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/usr/bin/env</string>
-        <string>node</string>
-        <string>/Users/a1234/.openclaw/services/services/model-proxy/server.js</string>
+        <string>/Users/USERNAME/.openclaw/services/bin/openclaw-proxy</string>
     </array>
 
     <key>EnvironmentVariables</key>
     <dict>
         <key>OPENCLAW_SERVICES_HOME</key>
-        <string>/Users/a1234/.openclaw/services</string>
+        <string>/Users/USERNAME/.openclaw/services</string>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
@@ -27,12 +25,12 @@
     <true/>
 
     <key>StandardOutPath</key>
-    <string>/Users/a1234/.openclaw/services/logs/model-proxy.log</string>
+    <string>/Users/USERNAME/.openclaw/services/logs/model-proxy.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/a1234/.openclaw/services/logs/model-proxy.error.log</string>
+    <string>/Users/USERNAME/.openclaw/services/logs/model-proxy.error.log</string>
 
     <key>WorkingDirectory</key>
-    <string>/Users/a1234/.openclaw/services/services/model-proxy</string>
+    <string>/Users/USERNAME/.openclaw/services</string>
 </dict>
 </plist>
