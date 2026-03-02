@@ -8,13 +8,13 @@
     <key>ProgramArguments</key>
     <array>
         <string>/bin/bash</string>
-        <string>/Users/USERNAME/.openclaw/services/services/watchdog/scripts/openclaw-watchdog.sh</string>
+        <string>/Users/a1234/.openclaw/services/services/watchdog/scripts/openclaw-watchdog.sh</string>
     </array>
 
     <key>EnvironmentVariables</key>
     <dict>
         <key>OPENCLAW_SERVICES_HOME</key>
-        <string>/Users/USERNAME/.openclaw/services</string>
+        <string>/Users/a1234/.openclaw/services</string>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
@@ -32,10 +32,10 @@
     </array>
 
     <key>StandardOutPath</key>
-    <string>/Users/USERNAME/.openclaw/services/logs/watchdog.log</string>
+    <string>/Users/a1234/.openclaw/services/logs/watchdog.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/USERNAME/.openclaw/services/logs/watchdog.error.log</string>
+    <string>/Users/a1234/.openclaw/services/logs/watchdog.error.log</string>
 
     <key>RunAtLoad</key>
     <false/>

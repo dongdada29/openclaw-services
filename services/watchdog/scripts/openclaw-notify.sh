@@ -5,8 +5,9 @@
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # 配置
-NOTIFICATION_LOG="$HOME/workspace/logs/openclaw-notifications.log"
-DISCORD_WEBHOOK_FILE="$HOME/workspace/config/discord-webhook.txt"
+OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
+NOTIFICATION_LOG="$OPENCLAW_SERVICES_HOME/logs/openclaw-notifications.log"
+DISCORD_WEBHOOK_FILE="$OPENCLAW_SERVICES_HOME/data/discord-webhook.txt"
 
 # 日志
 log() {
