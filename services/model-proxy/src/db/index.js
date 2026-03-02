@@ -4,7 +4,11 @@
  */
 import fs from 'fs';
 import path from 'path';
+import { createRequire } from 'module';
 import { getConfig } from '../config/index.js';
+
+// ESM 中使用 require
+const require = createRequire(import.meta.url);
 
 // 检测运行环境
 const isBun = typeof Bun !== 'undefined';

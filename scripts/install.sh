@@ -250,7 +250,9 @@ echo "║                                                            ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
 
-# 询问是否启用 proxy 模式
-read -p "是否立即启用 proxy 模式？(y/n) " -n 1 -r
-echo
-[[ $REPLY =~ ^[Yy]$ ]] && "$BIN_DIR/openclaw-services" proxy enable
+# 询问是否启用 proxy 模式（仅在交互模式下）
+if [ -t 0 ]; then
+    read -p "是否立即启用 proxy 模式？(y/n) " -n 1 -r
+    echo
+    [[ $REPLY =~ ^[Yy]$ ]] && "$BIN_DIR/openclaw-services" proxy enable
+fi
