@@ -5,18 +5,22 @@
   "description": "OpenClaw Infrastructure Services Monorepo",
   "type": "module",
   "workspaces": [
-    "services/*",
-    "cli"
+    "cli",
+    "services/model-proxy",
+    "services/watchdog"
   ],
   "scripts": {
     "install:all": "pnpm install && bash scripts/install.sh",
     "start": "pnpm -r run start",
-    "build": "pnpm -r run build",
+    "build": "bash scripts/build.sh",
     "test": "pnpm -r run test",
-    "clean": "rm -rf node_modules services/*/node_modules cli/node_modules",
-    "cli": "node cli/src/index.js"
+    "test:watch": "pnpm -r run test:watch",
+    "test:coverage": "pnpm -r run test:coverage",
+    "lint": "eslint .",
+    "clean": "rm -rf node_modules services/*/node_modules cli/node_modules dist"
   },
   "devDependencies": {
+    "vitest": "^3.0.0",
     "typescript": "^5.0.0",
     "@types/node": "^20.0.0"
   },

@@ -32,14 +32,15 @@ describe('sanitize', () => {
   });
 
   describe('sanitizeRequest', () => {
-    it('should truncate message content', () => {
+    it('should save full message content by default', () => {
       const longContent = 'a'.repeat(200);
       const result = sanitizeRequest({
         messages: [{ role: 'user', content: longContent }]
       });
 
       const parsed = JSON.parse(result.messages);
-      expect(parsed[0].content.length).toBeLessThan(150); // 100 + '...'
+      // 默认 saveFullContent=true，保存完整内容
+      expect(parsed[0].content).toBe(longContent);
     });
 
     it('should detect images in messages', () => {
@@ -61,7 +62,7 @@ describe('sanitize', () => {
       expect(result).toBeNull();
     });
 
-    it('should extract tool names only', () => {
+    it('should save full tools by default', () => {
       const result = sanitizeRequest({
         tools: [
           { name: 'tool1', description: 'desc' },
@@ -71,7 +72,10 @@ describe('sanitize', () => {
       });
 
       const parsed = JSON.parse(result.tools);
-      expect(parsed).toEqual(['tool1', 'tool2', 'function']);
+      // 默认 saveFullContent=true，保存完整工具定义
+      expect(parsed).toHaveLength(3);
+      expect(parsed[0].name).toBe('tool1');
+      expect(parsed[0].description).toBe('desc');
     });
   });
 
