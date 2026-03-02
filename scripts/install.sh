@@ -158,22 +158,11 @@ echo ""
 # 启动 proxy
 echo -e "${CYAN}🚀 启动服务...${RESET}"
 
-PROXY_DIR="$OPENCLAW_SERVICES_HOME/services/model-proxy"
-if [ -d "$PROXY_DIR" ]; then
-    # 检查是否已运行
-    if curl -s --max-time 2 "http://localhost:3456/_health" > /dev/null 2>&1; then
-        echo -e "${GREEN}✅ model-proxy 已在运行${RESET}"
-    else
-        cd "$PROXY_DIR"
-        nohup node server.js > "$OPENCLAW_SERVICES_HOME/logs/model-proxy.log" 2>&1 &
-        sleep 3
-
-        if curl -s --max-time 2 "http://localhost:3456/_health" > /dev/null 2>&1; then
-            echo -e "${GREEN}✅ model-proxy 已启动${RESET}"
-        else
-            echo -e "${YELLOW}⚠️ model-proxy 启动失败，请检查日志${RESET}"
-        fi
-    fi
+if [ -f "$BIN_DIR/openclaw-services" ]; then
+    "$BIN_DIR/openclaw-services" start proxy
+else
+    echo -e "${YELLOW}⚠️ CLI 未安装，跳过自动启动${RESET}"
+    echo "   请手动运行: openclaw-services start proxy"
 fi
 
 echo ""

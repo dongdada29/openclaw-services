@@ -257,15 +257,19 @@ start_proxy() {
         return 1
     fi
 
+    PID_FILE="/tmp/openclaw-model-proxy.pid"
+
     cd "$PROXY_DIR"
     nohup node server.js > "$LOG_DIR/model-proxy.log" 2>&1 &
+    echo $! > "$PID_FILE"
     sleep 3
 
     if check_proxy; then
-        echo "✅ Proxy 启动成功"
+        echo "✅ Proxy 启动成功 (PID: $(cat $PID_FILE))"
         return 0
     else
         echo "❌ Proxy 启动失败"
+        rm -f "$PID_FILE"
         return 1
     fi
 }
@@ -273,9 +277,22 @@ start_proxy() {
 restart_proxy() {
     log "🔄 重启 model-proxy..."
 
-    # 停止
-    pkill -f "node.*model-proxy" 2>/dev/null || true
-    sleep 2
+    # 使用 PID 文件停止（更精确）
+    PID_FILE="/tmp/openclaw-model-proxy.pid"
+    if [ -f "$PID_FILE" ]; then
+        OLD_PID=$(cat "$PID_FILE")
+        if kill -0 "$OLD_PID" 2>/dev/null; then
+            kill "$OLD_PID" 2>/dev/null || true
+            sleep 2
+            # 强制杀死如果还在运行
+            kill -0 "$OLD_PID" 2>/dev/null && kill -9 "$OLD_PID" 2>/dev/null || true
+        fi
+        rm -f "$PID_FILE"
+    else
+        # 备用：使用 pkill
+        pkill -f "node.*model-proxy" 2>/dev/null || true
+        sleep 2
+    fi
 
     # 启动
     start_proxy
