@@ -1,6 +1,6 @@
 {
   "name": "@openclaw/services",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "description": "OpenClaw Infrastructure Services Monorepo",
   "type": "module",
