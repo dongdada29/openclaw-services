@@ -19,12 +19,22 @@ RESET='\033[0m'
 # 配置
 OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
 REPO_URL="https://github.com/dongdada29/openclaw-services"
+TEMP_DIR="/tmp/openclaw-services-install-$$"
+
+# 获取当前用户名
+USERNAME=$(whoami)
 
 echo -e "${CYAN}"
 echo "╔════════════════════════════════════════════════════════════╗"
 echo "║        🦀 OpenClaw Services - 一键安装                     ║"
 echo "╚════════════════════════════════════════════════════════════╝"
 echo -e "${RESET}"
+
+# 清理函数
+cleanup() {
+    rm -rf "$TEMP_DIR"
+}
+trap cleanup EXIT
 
 # 检查依赖
 echo -e "${CYAN}🔍 检查依赖...${RESET}"
@@ -43,7 +53,7 @@ MISSING_DEPS=0
 
 check_command "node" "brew install node" || MISSING_DEPS=1
 check_command "npm" "brew install node" || MISSING_DEPS=1
-check_command "curl" "brew install curl" || MISSING_DEPS=0
+check_command "git" "brew install git" || MISSING_DEPS=0
 
 if [ $MISSING_DEPS -eq 1 ]; then
     echo -e "${RED}请先安装缺失的依赖${RESET}"
@@ -63,33 +73,58 @@ fi
 echo ""
 
 # 创建目录结构
-echo -e "${CYAN}📁 创建目录结构...${RESET}"
+echo -e "${CYAN}📁 创建安装目录...${RESET}"
 
-mkdir -p "$OPENCLAW_SERVICES_HOME"/{services,cli,config,logs,data/backups,scripts}
+mkdir -p "$OPENCLAW_SERVICES_HOME"/{services,cli,config,logs,data/backups}
 
 echo -e "${GREEN}✅ 目录已创建${RESET}"
 echo "   $OPENCLAW_SERVICES_HOME"
 echo ""
 
-# 克隆/更新仓库
+# 下载/获取源码
+echo -e "${CYAN}📦 获取源码...${RESET}"
+
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+if [ -d "$SCRIPT_DIR/../.git" ]; then
+    # 从本地安装
+    echo "从本地源码安装..."
+    SOURCE_DIR="$SCRIPT_DIR/.."
+else
+    # 从 GitHub 克隆
+    echo "从 GitHub 克隆..."
+    git clone --depth 1 "$REPO_URL" "$TEMP_DIR"
+    SOURCE_DIR="$TEMP_DIR"
+fi
+
+echo -e "${GREEN}✅ 源码已准备${RESET}"
+echo ""
+
+# 复制文件到安装目录
 echo -e "${CYAN}📦 安装服务...${RESET}"
 
-if [ -d "$OPENCLAW_SERVICES_HOME/.git" ]; then
-    echo "更新现有安装..."
-    cd "$OPENCLAW_SERVICES_HOME"
-    git pull origin main || true
-else
-    echo "克隆仓库..."
-    # 检查是否从本地安装
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-    if [ -d "$SCRIPT_DIR/../.git" ]; then
-        echo "从本地安装..."
-        cp -r "$SCRIPT_DIR/.."/* "$OPENCLAW_SERVICES_HOME/"
-    else
-        git clone "$REPO_URL" "$OPENCLAW_SERVICES_HOME"
-        cd "$OPENCLAW_SERVICES_HOME"
-    fi
+# 复制 CLI
+echo "  复制 CLI..."
+cp -r "$SOURCE_DIR/cli"/* "$OPENCLAW_SERVICES_HOME/cli/"
+
+# 复制 services（排除 node_modules）
+echo "  复制 services..."
+cp -r "$SOURCE_DIR/services"/* "$OPENCLAW_SERVICES_HOME/services/"
+
+# 复制 config
+if [ -d "$SOURCE_DIR/config" ]; then
+    cp -r "$SOURCE_DIR/config"/* "$OPENCLAW_SERVICES_HOME/config/"
 fi
+
+# 复制 launchd 并替换 USERNAME
+echo "  复制 launchd 配置..."
+mkdir -p "$OPENCLAW_SERVICES_HOME/launchd"
+for plist in "$SOURCE_DIR/launchd"/*.plist; do
+    if [ -f "$plist" ]; then
+        filename=$(basename "$plist")
+        sed "s|/Users/USERNAME|/Users/$USERNAME|g" "$plist" > "$OPENCLAW_SERVICES_HOME/launchd/$filename"
+    fi
+done
 
 echo -e "${GREEN}✅ 服务已安装${RESET}"
 echo ""
@@ -97,18 +132,22 @@ echo ""
 # 安装依赖
 echo -e "${CYAN}📦 安装依赖...${RESET}"
 
-cd "$OPENCLAW_SERVICES_HOME"
-
-if command -v pnpm &> /dev/null; then
-    pnpm install
-elif command -v npm &> /dev/null; then
-    npm install
+# model-proxy 依赖
+PROXY_DIR="$OPENCLAW_SERVICES_HOME/services/model-proxy"
+if [ -f "$PROXY_DIR/package.json" ]; then
+    echo "  安装 model-proxy 依赖..."
+    cd "$PROXY_DIR"
+    if command -v pnpm &> /dev/null; then
+        pnpm install --prod
+    elif command -v npm &> /dev/null; then
+        npm install --omit=dev
+    fi
 fi
 
 echo -e "${GREEN}✅ 依赖已安装${RESET}"
 echo ""
 
-# 创建 CLI 符号链接
+# 创建 CLI 命令
 echo -e "${CYAN}🔗 创建命令链接...${RESET}"
 
 CLI_TARGET="$OPENCLAW_SERVICES_HOME/cli/src/index.js"
