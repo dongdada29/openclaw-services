@@ -180,7 +180,8 @@ if [ -f "$PROXY_DIR/package.json" ]; then
         npm install --omit=dev
     fi
     # Rebuild native modules (better-sqlite3 needs to compile)
-    npm rebuild better-sqlite3 2>/dev/null || true
+    echo "   编译原生模块..."
+    npm rebuild better-sqlite3 || echo "   ⚠️ 原生模块编译失败，可能需要手动编译"
 fi
 echo -e "${GREEN}✅ 依赖已安装${RESET}"
 echo ""
