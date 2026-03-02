@@ -145,6 +145,9 @@ CLI_TARGET="$OPENCLAW_SERVICES_HOME/cli/src/index.js"
 BIN_DIR="$HOME/.local/bin"
 mkdir -p "$BIN_DIR"
 
+# 删除旧的符号链接（如果存在）
+[ -L "$BIN_DIR/openclaw-services" ] && rm -f "$BIN_DIR/openclaw-services"
+
 cat > "$BIN_DIR/openclaw-services" << EOF
 #!/bin/bash
 export OPENCLAW_SERVICES_HOME="$OPENCLAW_SERVICES_HOME"
