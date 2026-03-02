@@ -1,0 +1,19 @@
+{
+  "name": "@openclaw/service-watchdog",
+  "version": "1.3.0",
+  "description": "OpenClaw watchdog and health monitoring services",
+  "type": "module",
+  "scripts": {
+    "start": "bash scripts/openclaw-watchdog.sh",
+    "health": "bash scripts/health-monitor.sh",
+    "test": "echo 'No tests yet'"
+  },
+  "keywords": [
+    "openclaw",
+    "watchdog",
+    "health",
+    "monitoring"
+  ],
+  "author": "dongdada29",
+  "license": "MIT"
+}

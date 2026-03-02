@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+    <key>Label</key>
+    <string>com.openclaw.model-proxy</string>
+
+    <key>ProgramArguments</key>
+    <array>
+        <string>/usr/local/bin/node</string>
+        <string>/Users/USERNAME/.openclaw/services/services/model-proxy/server.js</string>
+    </array>
+
+    <key>EnvironmentVariables</key>
+    <dict>
+        <key>OPENCLAW_SERVICES_HOME</key>
+        <string>/Users/USERNAME/.openclaw/services</string>
+        <key>PATH</key>
+        <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
+    </dict>
+
+    <key>RunAtLoad</key>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
+
+    <key>StandardOutPath</key>
+    <string>/Users/USERNAME/.openclaw/services/logs/model-proxy.log</string>
+
+    <key>StandardErrorPath</key>
+    <string>/Users/USERNAME/.openclaw/services/logs/model-proxy.error.log</string>
+
+    <key>WorkingDirectory</key>
+    <string>/Users/USERNAME/.openclaw/services/services/model-proxy</string>
+</dict>
+</plist>

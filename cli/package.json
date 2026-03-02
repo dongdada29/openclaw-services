@@ -1,0 +1,19 @@
+{
+  "name": "@openclaw/services-cli",
+  "version": "1.0.0",
+  "description": "Unified CLI for OpenClaw Infrastructure Services",
+  "type": "module",
+  "bin": {
+    "openclaw-services": "./src/index.js"
+  },
+  "scripts": {
+    "start": "node src/index.js"
+  },
+  "keywords": [
+    "openclaw",
+    "cli",
+    "services"
+  ],
+  "author": "dongdada29",
+  "license": "MIT"
+}

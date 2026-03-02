@@ -1,0 +1,34 @@
+# OpenClaw Services Configuration
+# All paths support environment variable substitution: ${HOME}, ${OPENCLAW_SERVICES_HOME}
+
+[services]
+home = "${HOME}/.openclaw/services"
+log_level = "info"
+
+[watchdog]
+enabled = true
+schedule = "0 9 * * 0"  # Every Sunday 9am
+auto_rollback = true
+backup_config = true
+
+[health]
+enabled = true
+schedule = "0 9 * * *"  # Every day 9am
+check_gateway = true
+check_proxy = true
+log_retention_days = 7
+
+[proxy]
+enabled = true
+port = 3456
+host = "localhost"
+health_endpoint = "/_health"
+
+[notify]
+providers = ["macos", "discord"]
+# discord_webhook should be set via environment variable: DISCORD_WEBHOOK_URL
+
+[paths]
+logs = "${services.home}/logs"
+data = "${services.home}/data"
+backups = "${services.home}/data/backups"

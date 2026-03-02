@@ -1,0 +1,14 @@
+# 日志文件
+*.log
+
+# 备份文件
+*.tar.gz
+*.backup
+
+# macOS
+.DS_Store
+
+# IDE
+.idea/
+.vscode/
+*.swp

@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Database
+*.db
+*.db-wal
+*.db-shm
+
+# Logs
+*.log
+logs/
+
+# Config (may contain sensitive info)
+# config.toml
+
+# IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Test coverage
+coverage/
+
+# Build
+dist/
+build/
+
+# Environment
+.env
+.env.local
+.env.*.local

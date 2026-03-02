@@ -1,0 +1,33 @@
+# OpenClaw Model API Proxy 配置文件
+
+# 服务配置
+[server]
+port = 3456
+timeout = 30000  # 请求超时（毫秒）
+
+# 日志配置
+[logging]
+requests = true   # 记录请求
+responses = true  # 记录响应
+
+# 存储配置
+[storage]
+dbPath = "~/.openclaw-model-proxy/logs.db"
+retentionDays = 30
+batchSize = 50
+flushInterval = 5000  # 批量写入间隔（毫秒）
+
+# 脱敏配置
+[sanitization]
+maxContentLength = 100   # 消息内容最大长度
+maxSystemLength = 200    # System prompt 最大长度
+redactApiKeys = true     # 脱敏 API Key
+
+# 供应商配置（可选，覆盖默认）
+[providers.zai]
+host = "api.z.ai"
+keyPrefix = ["zai_", "z-ai_"]
+
+[providers.openai]
+host = "api.openai.com"
+keyPrefix = ["sk-proj-", "sk-svca-", "sk-"]
