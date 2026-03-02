@@ -7,7 +7,7 @@
  *   - 通知发送
  */
 
-import { execSync } from 'child_process';
+import { spawn, execSync } from 'child_process';
 import fs from 'fs';
 import path from 'path';
 
@@ -88,15 +88,29 @@ function isProcessRunning(pid) {
 
 // 启动 proxy
 async function startProxy() {
+  // 优先使用二进制，回退到源码
+  const proxyBin = path.join(OPENCLAW_SERVICES_HOME, 'bin/openclaw-proxy');
   const proxyDir = path.join(OPENCLAW_SERVICES_HOME, 'services/model-proxy');
-  if (!fs.existsSync(proxyDir)) {
-    log('red', '❌ model-proxy 目录不存在');
+  const proxyScript = path.join(proxyDir, 'server.js');
+
+  let cmd, args, cwd;
+
+  if (fs.existsSync(proxyBin)) {
+    cmd = proxyBin;
+    args = [];
+    cwd = OPENCLAW_SERVICES_HOME;
+  } else if (fs.existsSync(proxyScript)) {
+    cmd = 'node';
+    args = ['server.js'];
+    cwd = proxyDir;
+  } else {
+    log('red', '❌ model-proxy 未找到');
     return false;
   }
 
   const proxyLog = path.join(LOG_DIR, 'model-proxy.log');
-  const child = spawn('node', ['server.js'], {
-    cwd: proxyDir,
+  const child = spawn(cmd, args, {
+    cwd,
     detached: true,
     stdio: ['ignore', fs.openSync(proxyLog, 'a'), fs.openSync(proxyLog, 'a')]
   });
@@ -273,9 +287,7 @@ export async function main() {
 }
 
 // 如果直接运行
-if (import.meta.url === `file://${process.argv[1]}`) {
-  main().catch(err => {
-    console.error('Fatal error:', err.message);
-    process.exit(1);
-  });
-}
+main().catch(err => {
+  console.error('Fatal error:', err.message);
+  process.exit(1);
+});
