@@ -53,11 +53,14 @@ cp "$PROJECT_ROOT/cli/package.json" "$BUILD_DIR/cli/"
 
 # Services (model-proxy)
 echo "  复制 model-proxy..."
-cp -r "$PROJECT_ROOT/services/model-proxy" "$BUILD_DIR/services/"
+mkdir -p "$BUILD_DIR/services/model-proxy"
+cp -r "$PROJECT_ROOT/services/model-proxy"/* "$BUILD_DIR/services/model-proxy/" 2>/dev/null || true
 # 清理 node_modules 和测试文件
 rm -rf "$BUILD_DIR/services/model-proxy/node_modules"
 rm -rf "$BUILD_DIR/services/model-proxy/tests"
 rm -rf "$BUILD_DIR/services/model-proxy/.gitignore"
+rm -rf "$BUILD_DIR/services/model-proxy/.DS_Store"
+rm -rf "$BUILD_DIR/services/model-proxy/*.md"
 
 # Services (watchdog)
 echo "  复制 watchdog..."
