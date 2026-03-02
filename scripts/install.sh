@@ -176,12 +176,11 @@ if [ -f "$PROXY_DIR/package.json" ]; then
     cd "$PROXY_DIR"
     if command -v pnpm &> /dev/null; then
         pnpm install --prod
-        # Rebuild native modules (better-sqlite3)
-        pnpm rebuild better-sqlite3 2>/dev/null || npm rebuild better-sqlite3 2>/dev/null || true
     else
         npm install --omit=dev
-        npm rebuild better-sqlite3 2>/dev/null || true
     fi
+    # Rebuild native modules (better-sqlite3 needs to compile)
+    npm rebuild better-sqlite3 2>/dev/null || true
 fi
 echo -e "${GREEN}✅ 依赖已安装${RESET}"
 echo ""
