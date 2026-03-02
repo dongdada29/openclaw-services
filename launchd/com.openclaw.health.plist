@@ -9,14 +9,14 @@
     <array>
         <string>/usr/bin/env</string>
         <string>node</string>
-        <string>/Users/USERNAME/.openclaw/services/services/watchdog/index.js</string>
+        <string>/Users/USERNAME/.openclaw/services/watchdog/index.js</string>
         <string>check</string>
     </array>
 
     <key>EnvironmentVariables</key>
     <dict>
         <key>OPENCLAW_SERVICES_HOME</key>
-        <string>/Users/USERNAME/.openclaw/services</string>
+        <string>/Users/USERNAME/.openclaw</string>
         <key>PATH</key>
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
@@ -32,10 +32,10 @@
     </array>
 
     <key>StandardOutPath</key>
-    <string>/Users/USERNAME/.openclaw/services/logs/health.log</string>
+    <string>/Users/USERNAME/.openclaw/logs/health.log</string>
 
     <key>StandardErrorPath</key>
-    <string>/Users/USERNAME/.openclaw/services/logs/health.error.log</string>
+    <string>/Users/USERNAME/.openclaw/logs/health.error.log</string>
 
     <key>RunAtLoad</key>
     <false/>

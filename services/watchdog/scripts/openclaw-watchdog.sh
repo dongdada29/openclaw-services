@@ -14,7 +14,7 @@ export NVM_DIR="$HOME/.nvm"
 [ -s "$NVM_DIR/nvm.sh" ] && \. "$NVM_DIR/nvm.sh"
 
 # 配置（支持环境变量覆盖，默认使用 monorepo 路径）
-OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
+OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw}"
 WORKSPACE_DIR="${OPENCLAW_WORKSPACE:-$HOME/workspace}"
 
 # 路径配置

@@ -19,7 +19,7 @@ try {
 } catch {}
 
 // 配置常量
-const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(process.env.HOME, '.openclaw/services');
+const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(process.env.HOME, '.openclaw');
 const SERVICES_DIR = path.join(OPENCLAW_SERVICES_HOME, 'services');
 const LOG_DIR = path.join(OPENCLAW_SERVICES_HOME, 'logs');
 const DATA_DIR = path.join(OPENCLAW_SERVICES_HOME, 'data');
@@ -94,7 +94,7 @@ ${colors.yellow}示例:${colors.reset}
   openclaw-services doctor           # 健康检查
 
 ${colors.yellow}环境变量:${colors.reset}
-  OPENCLAW_SERVICES_HOME    服务安装路径 (默认: ~/.openclaw/services)
+  OPENCLAW_SERVICES_HOME    服务安装路径 (默认: ~/.openclaw)
 `);
 }
 

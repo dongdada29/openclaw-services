@@ -2,7 +2,7 @@
 # All paths support environment variable substitution: ${HOME}, ${OPENCLAW_SERVICES_HOME}
 
 [services]
-home = "${HOME}/.openclaw/services"
+home = "${HOME}/.openclaw"
 log_level = "info"
 
 [watchdog]

@@ -32,7 +32,7 @@ vi.mock('fs', () => ({
 describe('CLI Module', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw/services';
+    process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw';
   });
 
   afterEach(() => {

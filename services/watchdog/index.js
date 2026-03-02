@@ -12,7 +12,7 @@ import fs from 'fs';
 import path from 'path';
 
 // 配置
-const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(process.env.HOME, '.openclaw/services');
+const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(process.env.HOME, '.openclaw');
 const DATA_DIR = path.join(OPENCLAW_SERVICES_HOME, 'data');
 const LOG_DIR = path.join(OPENCLAW_SERVICES_HOME, 'logs');
 const PROXY_PORT = 3456;

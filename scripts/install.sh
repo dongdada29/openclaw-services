@@ -18,7 +18,7 @@ CYAN='\033[0;36m'
 RESET='\033[0m'
 
 # 配置
-OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
+OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw}"
 REPO_URL="https://github.com/dongdada29/openclaw-services"
 TEMP_DIR="/tmp/openclaw-services-install-$$"
 USERNAME=$(whoami)

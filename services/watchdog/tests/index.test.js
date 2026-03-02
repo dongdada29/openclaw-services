@@ -38,7 +38,7 @@ vi.mock('fs', () => ({
 describe('Watchdog Module', () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw/services';
+    process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw';
     process.env.HOME = '/test';
   });
 
@@ -48,15 +48,15 @@ describe('Watchdog Module', () => {
 
   describe('Configuration', () => {
     it('should use environment variable for home directory', () => {
-      const home = process.env.OPENCLAW_SERVICES_HOME || '/default/.openclaw/services';
-      expect(home).toBe('/test/.openclaw/services');
+      const home = process.env.OPENCLAW_SERVICES_HOME || '/default/.openclaw';
+      expect(home).toBe('/test/.openclaw');
     });
 
     it('should fallback to default home directory', () => {
       delete process.env.OPENCLAW_SERVICES_HOME;
       const home = process.env.OPENCLAW_SERVICES_HOME || '/default/.openclaw/services';
       expect(home).toBe('/default/.openclaw/services');
-      process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw/services';
+      process.env.OPENCLAW_SERVICES_HOME = '/test/.openclaw';
     });
   });
 

@@ -5,7 +5,7 @@
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # 配置（支持环境变量覆盖，默认使用 monorepo 路径）
-OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
+OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw}"
 DATA_DIR="$OPENCLAW_SERVICES_HOME/data"
 LOG_DIR="$OPENCLAW_SERVICES_HOME/logs"
 

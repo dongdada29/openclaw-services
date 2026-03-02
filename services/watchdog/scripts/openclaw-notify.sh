@@ -5,7 +5,7 @@
 export PATH="/opt/homebrew/bin:/usr/local/bin:$PATH"
 
 # 配置
-OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw/services}"
+OPENCLAW_SERVICES_HOME="${OPENCLAW_SERVICES_HOME:-$HOME/.openclaw}"
 NOTIFICATION_LOG="$OPENCLAW_SERVICES_HOME/logs/openclaw-notifications.log"
 DISCORD_WEBHOOK_FILE="$OPENCLAW_SERVICES_HOME/data/discord-webhook.txt"
 
