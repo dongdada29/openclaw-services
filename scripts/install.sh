@@ -89,6 +89,8 @@ get_latest_version() {
 # 下载发布包
 download_release() {
     local version="$1"
+    # 去掉版本号前的 v 前缀（如果存在）
+    version="${version#v}"
     local tarball="openclaw-services-$version-$OS-$ARCH.tar.gz"
     local download_url="$REPO_URL/releases/download/v$version/$tarball"
 
@@ -117,11 +119,16 @@ download_release() {
 install_from_source() {
     echo -e "${CYAN}📦 从源码安装...${RESET}"
 
-    SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    # 检测脚本位置（可能是本地或通过 curl 管道运行）
+    if [ -n "${BASH_SOURCE[0]}" ]; then
+        SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+    else
+        SCRIPT_DIR=""
+    fi
 
-    if [ -d "$SCRIPT_DIR/../.git" ]; then
+    if [ -n "$SCRIPT_DIR" ] && [ -d "$SCRIPT_DIR/../.git" ]; then
         echo "从本地源码安装..."
-        SOURCE_DIR="$SCRIPT_DIR/.."
+        SOURCE_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
     else
         echo "从 GitHub 克隆..."
         git clone --depth 1 "$REPO_URL" "$TEMP_DIR"
@@ -129,6 +136,7 @@ install_from_source() {
     fi
 
     # 复制 CLI
+    echo "  复制 CLI..."
     cp -r "$SOURCE_DIR/cli" "$OPENCLAW_SERVICES_HOME/"
 
     # 复制 services
