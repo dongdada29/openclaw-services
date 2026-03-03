@@ -1,17 +1,56 @@
 # Dependencies
 node_modules/
+.pnpm-store/
+
+# Build output
+dist/
 
 # Logs
-logs/*.log
+logs/
+*.log
 
-# Data
-data/*.db
-data/*.json
+# Data & databases
+data/
+*.db
+*.sqlite
+*.sqlite3
 
-# OS
+# OS generated
 .DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
 
-# IDE
+# IDE & editors
 .vscode/
 .idea/
-dist/
+*.swp
+*.swo
+*~
+
+# Environment & secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# Test coverage
+coverage/
+
+# Claude Code / OpenClaw
+.claude/
+.openclaw/
+.clawhub/
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Package manager
+package-lock.json
