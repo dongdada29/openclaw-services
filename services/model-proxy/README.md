@@ -5,7 +5,11 @@
 ## 🚀 快速开始
 
 ```bash
-cd ~/workspace/openclaw-model-proxy
+# 使用 openclaw-services CLI
+openclaw-services start proxy
+
+# 或手动启动
+cd ~/.openclaw/services/model-proxy
 node server.js
 ```
 
