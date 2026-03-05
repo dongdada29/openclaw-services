@@ -23,6 +23,8 @@ const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(p
 const SERVICES_DIR = path.join(OPENCLAW_SERVICES_HOME, 'services');
 const LOG_DIR = path.join(OPENCLAW_SERVICES_HOME, 'logs');
 const DATA_DIR = path.join(OPENCLAW_SERVICES_HOME, 'data');
+const LAUNCHD_DIR = path.join(OPENCLAW_SERVICES_HOME, 'launchd');
+const LAUNCHAGENTS_DIR = path.join(process.env.HOME, 'Library', 'LaunchAgents');
 
 // Proxy 配置
 const PROXY_HOST = 'localhost';
@@ -71,6 +73,7 @@ ${colors.yellow}用法:${colors.reset}
 ${colors.yellow}命令:${colors.reset}
   ${colors.green}status${colors.reset}         查看所有服务状态
   ${colors.green}doctor${colors.reset}         全面健康检查
+  ${colors.green}setup${colors.reset}          安装并注册 LaunchAgent 服务
 
   ${colors.green}start${colors.reset} [服务]   启动服务 (proxy | watchdog)
   ${colors.green}stop${colors.reset} [服务]    停止服务
@@ -84,11 +87,16 @@ ${colors.yellow}命令:${colors.reset}
   ${colors.green}health${colors.reset}         运行健康监控
   ${colors.green}watchdog${colors.reset}       运行 watchdog
 
+  ${colors.green}launchd list${colors.reset}   列出 LaunchAgent 状态
+  ${colors.green}launchd install${colors.reset} 注册 LaunchAgent
+  ${colors.green}launchd uninstall${colors.reset} 卸载 LaunchAgent
+
 ${colors.yellow}选项:${colors.reset}
   -v, --version    显示版本号
   -h, --help       显示帮助信息
 
 ${colors.yellow}示例:${colors.reset}
+  openclaw-services setup            # 首次安装设置
   openclaw-services status           # 查看状态
   openclaw-services proxy enable     # 切换到 proxy 模式
   openclaw-services doctor           # 健康检查
@@ -380,11 +388,284 @@ function ensureDirs() {
   });
 }
 
+// ==================== LaunchAgent 管理 ====================
+
+const LAUNCHD_SERVICES = [
+  { name: 'model-proxy', label: 'com.openclaw.model-proxy', schedule: null },
+  { name: 'watchdog', label: 'com.openclaw.watchdog', schedule: 'Weekly Sunday 9:00' },
+  { name: 'health', label: 'com.openclaw.health', schedule: 'Daily 9:00' },
+];
+
+// 生成 plist 文件内容
+function generatePlist(serviceName) {
+  const service = LAUNCHD_SERVICES.find(s => s.name === serviceName);
+  if (!service) return null;
+
+  const baseConfig = {
+    Label: service.label,
+    EnvironmentVariables: {
+      OPENCLAW_SERVICES_HOME: OPENCLAW_SERVICES_HOME,
+      PATH: '/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin',
+    },
+    StandardOutPath: path.join(LOG_DIR, `${serviceName}.log`),
+    StandardErrorPath: path.join(LOG_DIR, `${serviceName}.error.log`),
+  };
+
+  if (serviceName === 'model-proxy') {
+    return {
+      ...baseConfig,
+      ProgramArguments: [
+        '/usr/bin/env',
+        'node',
+        path.join(SERVICES_DIR, 'model-proxy', 'server.js'),
+      ],
+      RunAtLoad: true,
+      KeepAlive: true,
+      WorkingDirectory: path.join(SERVICES_DIR, 'model-proxy'),
+    };
+  } else if (serviceName === 'watchdog') {
+    return {
+      ...baseConfig,
+      ProgramArguments: [
+        '/usr/bin/env',
+        'node',
+        path.join(SERVICES_DIR, 'watchdog', 'index.js'),
+        'watch',
+      ],
+      StartCalendarInterval: [{ Weekday: 0, Hour: 9, Minute: 0 }],
+      RunAtLoad: false,
+    };
+  } else if (serviceName === 'health') {
+    return {
+      ...baseConfig,
+      ProgramArguments: [
+        '/usr/bin/env',
+        'node',
+        path.join(SERVICES_DIR, 'watchdog', 'index.js'),
+        'check',
+      ],
+      StartCalendarInterval: [{ Hour: 9, Minute: 0 }],
+      RunAtLoad: false,
+    };
+  }
+  return null;
+}
+
+// 将 plist 对象转换为 XML
+function plistToXml(plist) {
+  const escapeXml = (str) => str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
+  const valueToXml = (value, indent = '    ') => {
+    if (typeof value === 'string') {
+      return `${indent}<string>${escapeXml(value)}</string>`;
+    } else if (typeof value === 'number') {
+      return `${indent}<integer>${value}</integer>`;
+    } else if (typeof value === 'boolean') {
+      return `${indent}<${value}/>`;
+    } else if (Array.isArray(value)) {
+      const items = value.map(item => valueToXml(item, indent + '  ')).join('\n');
+      return `${indent}<array>\n${items}\n${indent}</array>`;
+    } else if (typeof value === 'object' && value !== null) {
+      const entries = Object.entries(value)
+        .map(([k, v]) => `${indent}  <key>${escapeXml(k)}</key>\n${valueToXml(v, indent + '  ')}`)
+        .join('\n');
+      return `${indent}<dict>\n${entries}\n${indent}</dict>`;
+    }
+    return `${indent}<string>${escapeXml(String(value))}</string>`;
+  };
+
+  const entries = Object.entries(plist)
+    .map(([key, value]) => `    <key>${escapeXml(key)}</key>\n${valueToXml(value)}`)
+    .join('\n');
+
+  return `<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+${entries}
+</dict>
+</plist>`;
+}
+
+// 安装 LaunchAgent
+function installLaunchd(serviceName) {
+  const service = LAUNCHD_SERVICES.find(s => s.name === serviceName);
+  if (!service) {
+    log('red', `❌ 未知服务: ${serviceName}`);
+    return false;
+  }
+
+  const plist = generatePlist(serviceName);
+  if (!plist) {
+    log('red', `❌ 无法生成 plist: ${serviceName}`);
+    return false;
+  }
+
+  // 确保目录存在
+  if (!fs.existsSync(LAUNCHAGENTS_DIR)) {
+    fs.mkdirSync(LAUNCHAGENTS_DIR, { recursive: true });
+  }
+
+  const plistPath = path.join(LAUNCHAGENTS_DIR, `${service.label}.plist`);
+  const plistContent = plistToXml(plist);
+
+  // 写入 plist 文件
+  fs.writeFileSync(plistPath, plistContent);
+  log('green', `✅ 创建 LaunchAgent: ${plistPath}`);
+
+  // 卸载旧的（如果存在）
+  try {
+    execSync(`launchctl unload "${plistPath}" 2>/dev/null`, { stdio: 'pipe' });
+  } catch {}
+
+  // 加载新的
+  try {
+    execSync(`launchctl load "${plistPath}"`, { stdio: 'pipe' });
+    log('green', `✅ 已注册: ${service.label}`);
+
+    if (service.schedule) {
+      log('cyan', `   调度: ${service.schedule}`);
+    } else {
+      log('cyan', `   模式: 保持运行 (KeepAlive)`);
+    }
+    return true;
+  } catch (err) {
+    log('red', `❌ 注册失败: ${err.message}`);
+    return false;
+  }
+}
+
+// 卸载 LaunchAgent
+function uninstallLaunchd(serviceName) {
+  const service = LAUNCHD_SERVICES.find(s => s.name === serviceName);
+  if (!service) {
+    log('red', `❌ 未知服务: ${serviceName}`);
+    return false;
+  }
+
+  const plistPath = path.join(LAUNCHAGENTS_DIR, `${service.label}.plist`);
+
+  // 卸载
+  try {
+    execSync(`launchctl unload "${plistPath}" 2>/dev/null`, { stdio: 'pipe' });
+    log('green', `✅ 已卸载: ${service.label}`);
+  } catch {}
+
+  // 删除文件
+  if (fs.existsSync(plistPath)) {
+    fs.unlinkSync(plistPath);
+    log('green', `✅ 已删除: ${plistPath}`);
+  }
+
+  return true;
+}
+
+// 列出 LaunchAgent 状态
+function listLaunchd() {
+  console.log('\n📋 LaunchAgent 状态:\n');
+
+  for (const service of LAUNCHD_SERVICES) {
+    const plistPath = path.join(LAUNCHAGENTS_DIR, `${service.label}.plist`);
+    const installed = fs.existsSync(plistPath);
+
+    // 检查是否已加载
+    let loaded = false;
+    try {
+      execSync(`launchctl list ${service.label} 2>/dev/null`, { stdio: 'pipe' });
+      loaded = true;
+    } catch {}
+
+    const status = loaded ? '🟢 运行中' : (installed ? '🟡 已安装' : '⚪ 未安装');
+    console.log(`   ${status}  ${service.name}${service.schedule ? ` (${service.schedule})` : ''}`);
+  }
+  console.log('');
+}
+
+// 运行完整设置
+async function runSetup() {
+  console.log(`\n🚀 OpenClaw Services Setup v${VERSION}\n`);
+
+  // 1. 确保目录存在
+  log('cyan', '📁 创建目录...');
+  ensureDirs();
+  [OPENCLAW_SERVICES_HOME, SERVICES_DIR, LOG_DIR, DATA_DIR].forEach(dir => {
+    if (!fs.existsSync(dir)) {
+      fs.mkdirSync(dir, { recursive: true });
+    }
+    log('green', `   ✅ ${dir}`);
+  });
+
+  // 2. 备份配置
+  log('cyan', '\n💾 备份配置...');
+  const modelsFile = path.join(process.env.HOME, '.openclaw/agents/main/agent/models.json');
+  const backupFile = path.join(DATA_DIR, 'openclaw-models-original.json');
+  if (fs.existsSync(modelsFile) && !fs.existsSync(backupFile)) {
+    fs.copyFileSync(modelsFile, backupFile);
+    log('green', '   ✅ 已备份 OpenClaw 配置');
+  } else if (fs.existsSync(backupFile)) {
+    log('cyan', '   ℹ️  备份已存在');
+  }
+
+  // 3. 安装 LaunchAgent
+  log('cyan', '\n📦 注册 LaunchAgent...');
+
+  // model-proxy - 立即启动
+  if (await checkProxyHealth()) {
+    log('green', '   ✅ model-proxy 已在运行');
+  } else {
+    installLaunchd('model-proxy');
+  }
+
+  // watchdog 和 health - 定时任务
+  installLaunchd('watchdog');
+  installLaunchd('health');
+
+  // 4. 显示状态
+  log('cyan', '\n📊 服务状态:');
+  await showStatus();
+
+  log('green', '\n✅ 设置完成！');
+  console.log('\n快速开始:');
+  console.log('   openclaw-services status       # 查看状态');
+  console.log('   openclaw-services proxy enable # 启用 proxy 模式');
+  console.log('   openclaw-services doctor       # 健康检查\n');
+}
+
+// LaunchAgent 命令处理
+async function launchdCommand(subCmd, serviceName) {
+  switch (subCmd) {
+    case 'list':
+      listLaunchd();
+      break;
+    case 'install':
+      if (serviceName) {
+        installLaunchd(serviceName);
+      } else {
+        for (const service of LAUNCHD_SERVICES) {
+          installLaunchd(service.name);
+        }
+      }
+      break;
+    case 'uninstall':
+      if (serviceName) {
+        uninstallLaunchd(serviceName);
+      } else {
+        for (const service of LAUNCHD_SERVICES) {
+          uninstallLaunchd(service.name);
+        }
+      }
+      break;
+    default:
+      console.log('用法: openclaw-services launchd <list|install|uninstall> [服务名]');
+  }
+}
+
 // 主入口
 async function main() {
   const args = process.argv.slice(2);
   const cmd = args[0];
   const subCmd = args[1];
+  const thirdArg = args[2];
 
   // 确保目录存在
   ensureDirs();
@@ -396,6 +677,7 @@ async function main() {
       break;
     case 'status': await showStatus(); break;
     case 'doctor': await runDoctor(); break;
+    case 'setup': await runSetup(); break;
     case 'start': await startService(subCmd || 'proxy'); break;
     case 'stop': await stopService(subCmd || 'proxy'); break;
     case 'restart': await stopService(subCmd || 'proxy'); await startService(subCmd || 'proxy'); break;
@@ -403,6 +685,7 @@ async function main() {
     case 'logs': await showLogs(subCmd); break;
     case 'health': runScript('health-monitor'); break;
     case 'watchdog': runScript('openclaw-watchdog'); break;
+    case 'launchd': await launchdCommand(subCmd, thirdArg); break;
     case '--help':
     case '-h':
     case 'help':

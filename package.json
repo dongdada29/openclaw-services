@@ -1,13 +1,14 @@
 {
   "name": "@openclaw/services",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "private": true,
   "description": "OpenClaw Infrastructure Services Monorepo",
   "type": "module",
   "workspaces": [
     "cli",
     "services/model-proxy",
-    "services/watchdog"
+    "services/watchdog",
+    "services/config-migrator"
   ],
   "scripts": {
     "install:all": "pnpm install && bash scripts/install.sh",

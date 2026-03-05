@@ -5,7 +5,8 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
-const CONFIG_FILE = path.join(os.homedir(), '.openclaw-model-proxy', 'config.toml');
+const CONFIG_FILE = path.join(os.homedir(), '.openclaw', 'config', 'openclaw.toml');
+const LOCAL_CONFIG_FILE = path.join(process.cwd(), 'config.toml');
 
 const DEFAULT_CONFIG = {
   // 服务配置
@@ -108,9 +109,10 @@ function parseToml(content) {
 function loadConfigFile() {
   // 检查多个可能的配置文件位置
   const configPaths = [
+    LOCAL_CONFIG_FILE,
     CONFIG_FILE,
-    path.join(process.cwd(), 'config.toml'),
-    path.join(process.cwd(), '.openclaw-model-proxy', 'config.toml'),
+    path.join(os.homedir(), '.openclaw', 'services', 'model-proxy', 'config.toml'),
+    path.join(process.env.OPENCLAW_SERVICES_HOME || '', 'services', 'model-proxy', 'config.toml'),
   ];
   
   for (const configPath of configPaths) {

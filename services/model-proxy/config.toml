@@ -12,7 +12,7 @@ responses = true  # 记录响应
 
 # 存储配置
 [storage]
-dbPath = "~/.openclaw-model-proxy/logs.db"
+dbPath = "~/.openclaw/data/model-proxy.db"
 retentionDays = 30
 batchSize = 50
 flushInterval = 5000  # 批量写入间隔（毫秒）
