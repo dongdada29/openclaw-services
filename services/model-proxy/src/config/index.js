@@ -5,6 +5,9 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
+// 确保 export.dir 默认值可用
+const DEFAULT_EXPORT_DIR = path.join(os.homedir(), 'logs', 'model-proxy');
+
 const CONFIG_FILE = path.join(os.homedir(), '.openclaw', 'config', 'openclaw.toml');
 const LOCAL_CONFIG_FILE = path.join(process.cwd(), 'config.toml');
 
@@ -35,6 +38,14 @@ const DEFAULT_CONFIG = {
   
   // 供应商配置
   providers: {},
+  
+  // 定时导出配置
+  export: {
+    enabled: true,             // 是否启用定时导出
+    schedule: '0 5',          // 导出时间 (hour minute, 24h format)
+    dir: path.join(os.homedir(), 'logs', 'model-proxy'),  // 导出目录
+    retentionDays: 30,        // 保留天数
+  },
 };
 
 /**

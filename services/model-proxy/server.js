@@ -17,6 +17,7 @@ import { initCache } from './src/db/cache.js';
 import { flushBatch, getPendingCount } from './src/db/repository.js';
 import { handleProxyRequest } from './src/proxy/handler.js';
 import { handleApiRequest } from './src/api/routes.js';
+import { shouldExport, runExport } from './src/utils/exporter.js';
 
 // 初始化
 const config = initConfig();
@@ -42,6 +43,24 @@ const flushTimer = setInterval(() => {
 
 // 防止定时器阻止进程退出
 flushTimer.unref();
+
+// 定时导出检查（每分钟检查一次）
+const exportConfig = config.get('export');
+if (exportConfig?.enabled !== false) {
+  const exportCheckTimer = setInterval(() => {
+    if (shouldExport(exportConfig?.schedule || '0 5')) {
+      console.log('[Export] 开始定时导出...');
+      const result = runExport();
+      if (result.success) {
+        console.log(`[Export] 导出完成: ${result.files.map(f => f.path).join(', ')}`);
+      } else {
+        console.error(`[Export] 导出失败: ${result.error}`);
+      }
+    }
+  }, 60000);  // 每分钟检查
+  
+  exportCheckTimer.unref();
+}
 
 // 优雅关闭
 async function shutdown(signal) {
@@ -112,6 +131,7 @@ server.listen(port, () => {
 ║    ✅ LRU 缓存加速查询                                                    ║
 ║    ✅ Prometheus metrics 端点                                              ║
 ║    ✅ JSONL/Markdown 导出                                                  ║
+║    ✅ 定时自动导出 (每日 ${exportConfig?.schedule || '0 5'})                               ║
 ║    ✅ 优雅关闭流程                                                         ║
 ╚══════════════════════════════════════════════════════════════════════════╝
   `);
