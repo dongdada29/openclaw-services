@@ -1,12 +1,14 @@
 {
   "name": "@openclaw/service-model-proxy",
-  "version": "1.3.0",
+  "version": "1.4.0",
   "type": "module",
   "description": "Transparent proxy for LLM API calls with logging and analytics",
   "main": "server.js",
   "scripts": {
-    "start": "node server.js",
-    "dev": "node --watch server.js",
+    "start": "bun server.js",
+    "dev": "bun --watch server.js",
+    "start:node": "node server.js",
+    "dev:node": "node --watch server.js",
     "test": "vitest run",
     "test:watch": "vitest"
   },
@@ -15,12 +17,15 @@
     "proxy",
     "llm",
     "api",
-    "logging"
+    "logging",
+    "bun"
   ],
   "author": "dongdada29",
   "license": "MIT",
   "dependencies": {
-    "async-mutex": "^0.5.0",
+    "async-mutex": "^0.5.0"
+  },
+  "optionalDependencies": {
     "better-sqlite3": "^11.0.0"
   }
 }

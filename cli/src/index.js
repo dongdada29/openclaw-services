@@ -200,7 +200,7 @@ async function startService(service) {
 
     // 启动进程
     const proxyLog = path.join(LOG_DIR, 'model-proxy.log');
-    const child = spawn('node', ['server.js'], {
+    const child = spawn('bun', ['server.js'], {
       cwd: proxyDir,
       detached: true,
       stdio: ['ignore', fs.openSync(proxyLog, 'a'), fs.openSync(proxyLog, 'a')]
@@ -251,7 +251,7 @@ async function stopService(service) {
     } else {
       // 备用方案：使用 pkill
       try {
-        execSync('pkill -f "node.*model-proxy"', { stdio: 'pipe' });
+        execSync('pkill -f "(node|bun).*model-proxy"', { stdio: 'pipe' });
         log('green', '✅ model-proxy 已停止');
       } catch {
         log('yellow', '⚠️ model-proxy 未在运行');

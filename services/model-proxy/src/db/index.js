@@ -4,34 +4,18 @@
  */
 import fs from 'fs';
 import path from 'path';
-import { createRequire } from 'module';
 import { getConfig } from '../config/index.js';
 
-// ESM 中使用 require
-const require = createRequire(import.meta.url);
-
 // 检测运行环境
-const isBun = typeof Bun !== 'undefined';
+export const isBun = typeof Bun !== 'undefined';
 
 let db = null;
-let DatabaseClass = null;
 
-// 获取 SQLite 实现（延迟加载）
-function getDatabaseClass() {
-  if (DatabaseClass) return DatabaseClass;
-
-  if (isBun) {
-    // Bun 内置 SQLite
-    const { Database } = require('bun:sqlite');
-    DatabaseClass = Database;
-  } else {
-    // Node.js 使用 better-sqlite3
-    DatabaseClass = require('better-sqlite3');
-  }
-
-  return DatabaseClass;
-}
-
+/**
+ * 初始化数据库
+ * Bun: 使用 bun:sqlite（内置，无需编译）
+ * Node: 使用 better-sqlite3（需要编译）
+ */
 export function initDatabase() {
   const config = getConfig();
   const dbPath = config.get('dbPath');
@@ -42,12 +26,24 @@ export function initDatabase() {
     fs.mkdirSync(dbDir, { recursive: true });
   }
 
-  const Database = getDatabaseClass();
-  db = new Database(dbPath);
-
-  // WAL 模式
-  if (db.pragma) {
-    db.pragma('journal_mode = WAL');
+  if (isBun) {
+    // Bun 内置 SQLite
+    // @ts-ignore
+    const { Database } = require('bun:sqlite');
+    db = new Database(dbPath);
+    
+    // WAL 模式（Bun 用 exec）
+    db.exec('PRAGMA journal_mode = WAL');
+  } else {
+    // Node.js - 使用 better-sqlite3
+    // @ts-ignore
+    const Database = require('better-sqlite3');
+    db = new Database(dbPath);
+    
+    // WAL 模式
+    if (db.pragma) {
+      db.pragma('journal_mode = WAL');
+    }
   }
 
   // 创建表
