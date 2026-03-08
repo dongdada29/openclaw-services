@@ -107,11 +107,27 @@ process.on('unhandledRejection', (reason, promise) => {
 // 启动服务
 const port = config.get('port');
 const dbPath = config.get('dbPath');
+const exportSchedule = exportConfig?.schedule || '0 5';
+
+// 端口冲突处理
+server.on('error', (err) => {
+  if (err.code === 'EADDRINUSE') {
+    console.error(`❌ Port ${port} already in use. Waiting 3s before retry...`);
+    setTimeout(() => {
+      console.log('Retrying to start server...');
+      server.close();
+      server.listen(port);
+    }, 3000);
+  } else {
+    console.error('Server error:', err);
+    throw err;
+  }
+});
 
 server.listen(port, () => {
   console.log(`
 ╔══════════════════════════════════════════════════════════════════════════╗
-║         🔍 OpenClaw Model API Proxy (分层架构版 v1.3.1)                   ║
+║         🔍 OpenClaw Model API Proxy (v1.4.0)                              ║
 ╠══════════════════════════════════════════════════════════════════════════╣
 ║  Proxy:  http://localhost:${port}                                            ║
 ║  DB:     ${dbPath.padEnd(52)}║
@@ -131,7 +147,8 @@ server.listen(port, () => {
 ║    ✅ LRU 缓存加速查询                                                    ║
 ║    ✅ Prometheus metrics 端点                                              ║
 ║    ✅ JSONL/Markdown 导出                                                  ║
-║    ✅ 定时自动导出 (每日 ${exportConfig?.schedule || '0 5'})                               ║
+║    ✅ 定时自动导出 (每日 ${exportSchedule})                                   ║
+║    ✅ 端口冲突自动重试                                                     ║
 ║    ✅ 优雅关闭流程                                                         ║
 ╚══════════════════════════════════════════════════════════════════════════╝
   `);
