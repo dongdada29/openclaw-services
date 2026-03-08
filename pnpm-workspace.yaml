@@ -1,3 +1,5 @@
 packages:
-  - 'services/*'
-  - 'cli'
+  - services/*
+  - cli
+
+allowBuild: better-sqlite3

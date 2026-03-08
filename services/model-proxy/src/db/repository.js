@@ -7,6 +7,7 @@
  *   - 错误重试
  *   - 查询缓存
  */
+import fs from 'fs';
 import { Mutex } from 'async-mutex';
 import { getDatabase } from './index.js';
 import { getConfig } from '../config/index.js';
@@ -367,4 +368,126 @@ ${Object.entries(stats.byProvider).map(([k, v]) =>
   });
   
   return md;
+}
+
+/**
+ * 执行 VACUUM 压缩数据库
+ */
+export function vacuumDatabase() {
+  const db = getDatabase();
+  const config = getConfig();
+  const dbPath = config.get('dbPath');
+  
+  // 获取压缩前大小
+  const beforeSize = getDatabaseSize(dbPath);
+  
+  // 执行 VACUUM
+  db.pragma('wal_checkpoint(TRUNCATE)');
+  db.exec('VACUUM');
+  db.pragma('optimize');
+  
+  // 获取压缩后大小
+  const afterSize = getDatabaseSize(dbPath);
+  
+  return {
+    before: beforeSize,
+    after: afterSize,
+    saved: beforeSize - afterSize,
+    savedMB: Math.round((beforeSize - afterSize) / 1024 / 1024 * 100) / 100,
+  };
+}
+
+/**
+ * 获取数据库文件大小 (bytes)
+ */
+export function getDatabaseSize(dbPath) {
+  try {
+    const stat = fs.statSync(dbPath);
+    let size = stat.size;
+    
+    // 加上 WAL 和 SHM 文件
+    const walPath = dbPath + '-wal';
+    const shmPath = dbPath + '-shm';
+    if (fs.existsSync(walPath)) size += fs.statSync(walPath).size;
+    if (fs.existsSync(shmPath)) size += fs.statSync(shmPath).size;
+    
+    return size;
+  } catch {
+    return 0;
+  }
+}
+
+/**
+ * 获取数据库统计信息
+ */
+export function getDatabaseStats() {
+  const db = getDatabase();
+  const config = getConfig();
+  const dbPath = config.get('dbPath');
+  
+  const totalRequests = db.prepare('SELECT COUNT(*) as count FROM requests').get().count;
+  const totalDetails = db.prepare('SELECT COUNT(*) as count FROM request_details').get().count;
+  const oldestRecord = db.prepare('SELECT MIN(timestamp) as ts FROM requests').get().ts;
+  const newestRecord = db.prepare('SELECT MAX(timestamp) as ts FROM requests').get().ts;
+  const dbSize = getDatabaseSize(dbPath);
+  
+  return {
+    totalRequests,
+    totalDetails,
+    oldestRecord,
+    newestRecord,
+    dbSizeBytes: dbSize,
+    dbSizeMB: Math.round(dbSize / 1024 / 1024 * 100) / 100,
+  };
+}
+
+/**
+ * 获取日志列表（支持时间过滤）
+ */
+export function getLogsWithTimeFilter(limit = 100, offset = 0, provider = null, startTime = null, endTime = null) {
+  const db = getDatabase();
+  
+  // 动态构建 SQL
+  let sql = `
+    SELECT r.*, d.messages, d.system, d.tools 
+    FROM requests r 
+    LEFT JOIN request_details d ON r.id = d.request_id 
+    WHERE 1=1
+  `;
+  const params = [];
+  
+  if (provider) {
+    sql += ` AND r.provider = ?`;
+    params.push(provider);
+  }
+  if (startTime) {
+    sql += ` AND r.timestamp >= ?`;
+    params.push(startTime);
+  }
+  if (endTime) {
+    sql += ` AND r.timestamp <= ?`;
+    params.push(endTime);
+  }
+  
+  sql += ` ORDER BY r.timestamp DESC LIMIT ? OFFSET ?`;
+  params.push(limit, offset);
+  
+  const logs = db.prepare(sql).all(...params).map(row => ({
+    id: row.id,
+    timestamp: row.timestamp,
+    provider: row.provider,
+    model: row.model,
+    status: row.status,
+    durationMs: row.duration_ms,
+    isStreaming: !!row.is_streaming,
+    tokens: { input: row.input_tokens, output: row.output_tokens },
+    details: row.messages ? {
+      messages: JSON.parse(row.messages),
+      system: row.system,
+      tools: row.tools ? JSON.parse(row.tools) : [],
+      hasImages: !!row.has_images,
+    } : null,
+  }));
+  
+  return logs;
 }

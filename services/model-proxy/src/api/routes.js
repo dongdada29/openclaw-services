@@ -2,7 +2,17 @@
  * API 层 - RESTful API 路由
  */
 import { getConfig } from '../config/index.js';
-import { flushBatch, getStats, getLogs, cleanupOldLogs, exportToJsonl, exportToMarkdown } from '../db/repository.js';
+import { 
+  flushBatch, 
+  getStats, 
+  getLogs, 
+  getLogsWithTimeFilter,
+  cleanupOldLogs, 
+  exportToJsonl, 
+  exportToMarkdown,
+  vacuumDatabase,
+  getDatabaseStats,
+} from '../db/repository.js';
 import { getProviderList } from '../providers/index.js';
 
 /**
@@ -21,6 +31,8 @@ export function handleApiRequest(req, res) {
     'GET /_logs': () => handleLogs(url, res),
     'GET /_providers': () => handleProviders(res),
     'GET /_cleanup': () => handleCleanup(url, res),
+    'GET /_vacuum': () => handleVacuum(res),
+    'GET /_db-stats': () => handleDbStats(res),
     'POST /_flush': () => handleFlush(res),
     'GET /_metrics': () => handleMetrics(res),
     'GET /_export/jsonl': () => handleExportJsonl(url, res),
@@ -39,14 +51,30 @@ export function handleApiRequest(req, res) {
 }
 
 /**
- * GET /_health - 健康检查
+ * GET /_health - 健康检查（增强版）
  */
 function handleHealth(res) {
+  const config = getConfig();
+  const dbStats = getDatabaseStats();
+  
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify({
     status: 'ok',
     timestamp: new Date().toISOString(),
-  }));
+    uptime: Math.floor(process.uptime()),
+    version: '1.4.0',
+    database: {
+      totalRequests: dbStats.totalRequests,
+      sizeMB: dbStats.dbSizeMB,
+      oldestRecord: dbStats.oldestRecord,
+      newestRecord: dbStats.newestRecord,
+    },
+    config: {
+      port: config.get('port'),
+      retentionDays: config.get('retentionDays'),
+      exportEnabled: config.get('export')?.enabled !== false,
+    },
+  }, null, 2));
 }
 
 /**
@@ -98,6 +126,29 @@ function handleCleanup(url, res) {
   
   res.writeHead(200, { 'Content-Type': 'application/json' });
   res.end(JSON.stringify(result, null, 2));
+}
+
+/**
+ * GET /_vacuum - 压缩数据库
+ */
+function handleVacuum(res) {
+  const result = vacuumDatabase();
+  
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify({
+    success: true,
+    ...result,
+  }, null, 2));
+}
+
+/**
+ * GET /_db-stats - 数据库统计
+ */
+function handleDbStats(res) {
+  const stats = getDatabaseStats();
+  
+  res.writeHead(200, { 'Content-Type': 'application/json' });
+  res.end(JSON.stringify(stats, null, 2));
 }
 
 /**
