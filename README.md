@@ -32,7 +32,8 @@ openclaw-services doctor
 │   └── openclaw.toml          # 统一配置
 ├── services/
 │   ├── model-proxy/           # LLM API 代理
-│   └── watchdog/              # 监控服务
+│   ├── watchdog/              # 监控服务
+│   └── config-migrator/       # 配置迁移服务
 ├── logs/                      # 统一日志
 └── data/
     └── backups/               # 配置备份
@@ -40,11 +41,13 @@ openclaw-services doctor
 
 ## LaunchAgent 服务
 
-| 服务 | 调度 | 功能 |
+| 服务 | 模式 | 功能 |
 |------|------|------|
 | model-proxy | KeepAlive | LLM API 代理（持续运行） |
-| watchdog | 每周日 9:00 | 自动更新 OpenClaw |
+| watchdog | KeepAlive | 自动更新 OpenClaw + Proxy 故障保护（持续运行） |
 | health | 每天 9:00 | 健康检查 + 日志清理 |
+
+> **注意**: watchdog 已改为持续运行模式（每 60 秒检查一次），确保 Proxy 故障时能自动恢复。
 
 ## CLI 命令
 
@@ -72,6 +75,37 @@ openclaw-services launchd uninstall # 卸载 LaunchAgent
 openclaw-services doctor         # 全面诊断
 openclaw-services logs [服务]    # 查看日志
 ```
+
+## 配置迁移服务
+
+用于备份、恢复、迁移 OpenClaw 配置到新机器。
+
+```bash
+# 查看配置状态
+cd ~/.openclaw/services/config-migrator && node index.js status
+
+# 创建备份
+node index.js backup --label "daily"
+
+# 列出备份
+node index.js list
+
+# 恢复备份
+node index.js restore [backup-file]
+
+# 同步到 NAS
+node index.js sync --nas /path/to/nas
+
+# 迁移到新机器
+node index.js migrate --target user@host:/path
+```
+
+### 备份范围
+
+| 类型 | 文件 |
+|------|------|
+| Workspace | MEMORY.md, SOUL.md, TOOLS.md, AGENTS.md, USER.md, IDENTITY.md |
+| .openclaw | agents/, config/, credentials/, memory/, cron/ |
 
 ## 环境变量
 
