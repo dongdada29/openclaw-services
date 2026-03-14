@@ -131,6 +131,15 @@ bash scripts/install.sh --setup
 
 # 运行测试
 pnpm test
+
+# 运行测试（监听模式）
+pnpm test:watch
+
+# 运行测试覆盖率
+pnpm test:coverage
+
+# 打开覆盖率报告
+open coverage/index.html
 ```
 
 ## License
