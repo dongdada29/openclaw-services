@@ -392,7 +392,7 @@ function ensureDirs() {
 
 const LAUNCHD_SERVICES = [
   { name: 'model-proxy', label: 'com.openclaw.model-proxy', schedule: null },
-  { name: 'watchdog', label: 'com.openclaw.watchdog', schedule: 'Weekly Sunday 9:00' },
+  { name: 'watchdog', label: 'com.openclaw.watchdog', schedule: null },  // 持续运行模式
   { name: 'health', label: 'com.openclaw.health', schedule: 'Daily 9:00' },
 ];
 
@@ -432,8 +432,8 @@ function generatePlist(serviceName) {
         path.join(SERVICES_DIR, 'watchdog', 'index.js'),
         'watch',
       ],
-      StartCalendarInterval: [{ Weekday: 0, Hour: 9, Minute: 0 }],
-      RunAtLoad: false,
+      RunAtLoad: true,
+      KeepAlive: true,
     };
   } else if (serviceName === 'health') {
     return {
