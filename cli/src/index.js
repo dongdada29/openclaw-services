@@ -515,12 +515,12 @@ function installLaunchd(serviceName) {
 
   // 卸载旧的（如果存在）
   try {
-    execSync(`launchctl unload "${plistPath}" 2>/dev/null`, { stdio: 'pipe' });
+    execSync('launchctl', ['unload', plistPath], { stdio: 'pipe' });
   } catch {}
 
   // 加载新的
   try {
-    execSync(`launchctl load "${plistPath}"`, { stdio: 'pipe' });
+    execSync('launchctl', ['load', plistPath], { stdio: 'pipe' });
     log('green', `✅ 已注册: ${service.label}`);
 
     if (service.schedule) {

@@ -86,9 +86,9 @@ function isProcessRunning(pid) {
   }
 }
 
-// 启动 proxy
+// 运行 proxy
 async function startProxy() {
-  // 优先使用二进制，回退到源码
+  // 优先使用二进制，回退到源码，  自动检测运行时
   const proxyBin = path.join(OPENCLAW_SERVICES_HOME, 'bin/openclaw-proxy');
   const proxyDir = path.join(OPENCLAW_SERVICES_HOME, 'services/model-proxy');
   const proxyScript = path.join(proxyDir, 'server.js');
@@ -100,7 +100,9 @@ async function startProxy() {
     args = [];
     cwd = OPENCLAW_SERVICES_HOME;
   } else if (fs.existsSync(proxyScript)) {
-    cmd = 'node';
+    // 自动检测运行时：bun > node
+    const runtime = fs.existsSync('/opt/homebrew/bin/bun') ? 'bun' : 'node';
+    cmd = runtime;
     args = ['server.js'];
     cwd = proxyDir;
   } else {
