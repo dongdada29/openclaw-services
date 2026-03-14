@@ -6,23 +6,23 @@
 
 ---
 
-## 🔴 高优先级问题
+## ✅ 已修复问题
 
-### 1. 命令注入风险 (CLI)
+### 1. 命令注入风险 (CLI) ✅
 
 **文件**: `cli/src/index.js`
-**位置**: Line 513-514
+**状态**: 已修复
 
-```javascript
-execSync(`launchctl load "${plistPath}"`, { stdio: 'pipe' });
-```
+使用 `execSync('launchctl', ['load', plistPath], { stdio: 'pipe' })` 替代字符串拼接。
 
-**问题**: `plistPath` 虽然来自内部生成，但未进行转义。如果路径包含特殊字符（如反引号、`$()`），可能导致命令注入。
+---
 
-**修复建议**:
-```javascript
-execSync('launchctl', ['load', plistPath], { stdio: 'pipe' });
-```
+### 2. 无限循环无退出机制 (Watchdog) ✅
+
+**文件**: `services/watchdog/index.js`
+**状态**: 已修复
+
+添加了 SIGINT/SIGTERM 信号处理，支持优雅退出。
 
 ---
 
