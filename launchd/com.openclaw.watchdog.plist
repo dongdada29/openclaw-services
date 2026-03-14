@@ -7,7 +7,8 @@
 
     <key>ProgramArguments</key>
     <array>
-        <string>/opt/homebrew/bin/bun</string>
+        <string>/usr/bin/env</string>
+        <string>node</string>
         <string>/Users/USERNAME/.openclaw/services/watchdog/index.js</string>
         <string>watch</string>
     </array>
@@ -20,18 +21,6 @@
         <string>/opt/homebrew/bin:/usr/local/bin:/usr/bin:/bin</string>
     </dict>
 
-    <key>StartCalendarInterval</key>
-    <array>
-        <dict>
-            <key>Weekday</key>
-            <integer>0</integer>
-            <key>Hour</key>
-            <integer>9</integer>
-            <key>Minute</key>
-            <integer>0</integer>
-        </dict>
-    </array>
-
     <key>StandardOutPath</key>
     <string>/Users/USERNAME/.openclaw/logs/watchdog.log</string>
 
@@ -39,6 +28,9 @@
     <string>/Users/USERNAME/.openclaw/logs/watchdog.error.log</string>
 
     <key>RunAtLoad</key>
-    <false/>
+    <true/>
+
+    <key>KeepAlive</key>
+    <true/>
 </dict>
 </plist>
