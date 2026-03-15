@@ -52,8 +52,14 @@ openclaw-services doctor
 ## CLI 命令
 
 ```bash
-# 一键设置（首次安装或重置）
+# 一键安装（首次安装或重置）
+openclaw-services install
+
+# 完整安装（含配置备份）
 openclaw-services setup
+
+# 卸载所有服务
+openclaw-services uninstall
 
 # 服务管理
 openclaw-services start [服务]   # 启动服务
@@ -66,38 +72,51 @@ openclaw-services proxy enable   # 启用 proxy 模式
 openclaw-services proxy disable  # 禁用 proxy 模式
 openclaw-services proxy test     # 测试 proxy
 
+# 配置管理
+openclaw-services config status      # 查看配置状态
+openclaw-services config backup     # 创建备份
+openclaw-services config list        # 列出备份
+openclaw-services config restore    # 恢复备份
+openclaw-services config diff       # 对比差异
+openclaw-services config sync       # 同步到 NAS
+openclaw-services config migrate    # 迁移到目标
+
 # LaunchAgent 管理
-openclaw-services launchd list     # 列出服务状态
-openclaw-services launchd install  # 注册 LaunchAgent
+openclaw-services launchd list      # 列出服务状态
+openclaw-services launchd install   # 注册 LaunchAgent
 openclaw-services launchd uninstall # 卸载 LaunchAgent
 
 # 健康检查
-openclaw-services doctor         # 全面诊断
-openclaw-services logs [服务]    # 查看日志
+openclaw-services doctor           # 全面诊断
+openclaw-services health            # 运行健康监控
+openclaw-services logs [服务]       # 查看日志
 ```
 
 ## 配置迁移服务
 
-用于备份、恢复、迁移 OpenClaw 配置到新机器。
+使用 `openclaw-services config` 命令统一管理：
 
 ```bash
 # 查看配置状态
-cd ~/.openclaw/services/config-migrator && node index.js status
+openclaw-services config status
 
 # 创建备份
-node index.js backup --label "daily"
+openclaw-services config backup --label "daily"
 
 # 列出备份
-node index.js list
+openclaw-services config list
 
 # 恢复备份
-node index.js restore [backup-file]
+openclaw-services config restore [backup-file]
+
+# 对比差异
+openclaw-services config diff
 
 # 同步到 NAS
-node index.js sync --nas /path/to/nas
+openclaw-services config sync --nas /Volumes/SSD_M2_1/openclaw-backups
 
 # 迁移到新机器
-node index.js migrate --target user@host:/path
+openclaw-services config migrate --target user@192.168.1.100:~/.openclaw
 ```
 
 ### 备份范围

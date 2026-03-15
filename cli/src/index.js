@@ -74,6 +74,8 @@ ${colors.yellow}命令:${colors.reset}
   ${colors.green}status${colors.reset}         查看所有服务状态
   ${colors.green}doctor${colors.reset}         全面健康检查
   ${colors.green}setup${colors.reset}          安装并注册 LaunchAgent 服务
+  ${colors.green}install${colors.reset}         一键安装（不备份）
+  ${colors.green}uninstall${colors.reset}       卸载所有服务
 
   ${colors.green}start${colors.reset} [服务]   启动服务 (proxy | watchdog)
   ${colors.green}stop${colors.reset} [服务]    停止服务
@@ -88,7 +90,6 @@ ${colors.yellow}命令:${colors.reset}
   ${colors.green}watchdog${colors.reset}       运行 watchdog
 
   ${colors.green}config${colors.reset}         配置管理 (backup/restore/sync/migrate)
-
   ${colors.green}launchd list${colors.reset}   列出 LaunchAgent 状态
   ${colors.green}launchd install${colors.reset} 注册 LaunchAgent
   ${colors.green}launchd uninstall${colors.reset} 卸载 LaunchAgent
@@ -597,7 +598,11 @@ async function runSetup() {
     log('green', `   ✅ ${dir}`);
   });
 
-  // 2. 备份配置
+  // 2. 安装服务模块
+  log('cyan', '\n📦 安装服务模块...');
+  await installServices();
+
+  // 3. 备份配置
   log('cyan', '\n💾 备份配置...');
   const modelsFile = path.join(process.env.HOME, '.openclaw/agents/main/agent/models.json');
   const backupFile = path.join(DATA_DIR, 'openclaw-models-original.json');
@@ -608,8 +613,8 @@ async function runSetup() {
     log('cyan', '   ℹ️  备份已存在');
   }
 
-  // 3. 安装 LaunchAgent
-  log('cyan', '\n📦 注册 LaunchAgent...');
+  // 4. 注册 LaunchAgent
+  log('cyan', '\n🚀 注册 LaunchAgent...');
 
   // model-proxy - 立即启动
   if (await checkProxyHealth()) {
@@ -622,7 +627,7 @@ async function runSetup() {
   installLaunchd('watchdog');
   installLaunchd('health');
 
-  // 4. 显示状态
+  // 5. 显示状态
   log('cyan', '\n📊 服务状态:');
   await showStatus();
 
@@ -631,6 +636,83 @@ async function runSetup() {
   console.log('   openclaw-services status       # 查看状态');
   console.log('   openclaw-services proxy enable # 启用 proxy 模式');
   console.log('   openclaw-services doctor       # 健康检查\n');
+}
+
+// 安装服务模块
+async function installServices() {
+  const srcDir = path.join(process.env.HOME, 'workspace/openclaw-services/services');
+  
+  const services = ['model-proxy', 'watchdog', 'config-migrator'];
+  
+  for (const service of services) {
+    const srcPath = path.join(srcDir, service);
+    const destPath = path.join(SERVICES_DIR, service);
+    
+    if (!fs.existsSync(srcPath)) {
+      log('yellow', `   ⚠️ 源码不存在: ${service}`);
+      continue;
+    }
+    
+    // 复制服务目录
+    execSync(`cp -r "${srcPath}" "${destPath}"`, { stdio: 'pipe' });
+    
+    // 安装依赖
+    if (fs.existsSync(path.join(destPath, 'package.json'))) {
+      try {
+        execSync('bun install', { cwd: destPath, stdio: 'pipe' });
+        log('green', `   ✅ ${service}`);
+      } catch (err) {
+        log('red', `   ❌ ${service} 依赖安装失败`);
+      }
+    } else {
+      log('green', `   ✅ ${service}`);
+    }
+  }
+}
+
+// 一键安装（不备份）
+async function runInstall() {
+  console.log(`\n📦 OpenClaw Services Install v${VERSION}\n`);
+
+  // 1. 确保目录存在
+  log('cyan', '📁 创建目录...');
+  ensureDirs();
+
+  // 2. 安装服务模块
+  log('cyan', '\n📦 安装服务模块...');
+  await installServices();
+
+  // 3. 注册 LaunchAgent
+  log('cyan', '\n🚀 注册 LaunchAgent...');
+  for (const service of LAUNCHD_SERVICES) {
+    installLaunchd(service.name);
+  }
+
+  log('green', '\n✅ 安装完成！');
+}
+
+// 卸载所有服务
+async function runUninstall() {
+  console.log(`\n🗑️ OpenClaw Services Uninstall v${VERSION}\n`);
+
+  // 1. 停止所有服务
+  log('cyan', '🛑 停止服务...');
+  await stopService('proxy');
+  
+  // 2. 卸载 LaunchAgent
+  log('cyan', '\n🗑️ 卸载 LaunchAgent...');
+  for (const service of LAUNCHD_SERVICES) {
+    uninstallLaunchd(service.name);
+  }
+
+  // 3. 删除服务目录
+  log('cyan', '\n🗑️ 删除服务目录...');
+  if (fs.existsSync(SERVICES_DIR)) {
+    execSync(`rm -rf "${SERVICES_DIR}"`);
+    log('green', `   ✅ 已删除: ${SERVICES_DIR}`);
+  }
+
+  log('green', '\n✅ 卸载完成！');
 }
 
 // LaunchAgent 命令处理
@@ -712,6 +794,8 @@ async function main() {
     case 'status': await showStatus(); break;
     case 'doctor': await runDoctor(); break;
     case 'setup': await runSetup(); break;
+    case 'install': await runInstall(); break;
+    case 'uninstall': await runUninstall(); break;
     case 'start': await startService(subCmd || 'proxy'); break;
     case 'stop': await stopService(subCmd || 'proxy'); break;
     case 'restart': await stopService(subCmd || 'proxy'); await startService(subCmd || 'proxy'); break;
