@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/service-model-proxy",
+  "name": "@openclaw/services-model-proxy",
   "version": "1.4.0",
   "type": "module",
   "description": "Transparent proxy for LLM API calls with logging and analytics",

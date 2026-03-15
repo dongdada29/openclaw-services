@@ -1,5 +1,5 @@
 {
-  "name": "@openclaw/config-migrator",
+  "name": "@openclaw/services-config-migrator",
   "version": "1.0.0",
   "description": "OpenClaw configuration backup, restore, and migration service",
   "type": "module",
