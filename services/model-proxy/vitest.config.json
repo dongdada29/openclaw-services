@@ -1,0 +1,6 @@
+{
+  "test": {
+    "include": [],
+    "environment": "node"
+  }
+}

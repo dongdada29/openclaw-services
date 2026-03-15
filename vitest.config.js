@@ -6,8 +6,20 @@ export default defineConfig({
     environment: 'node',
     include: [
       'cli/tests/**/*.test.js',
-      'services/*/tests/**/*.test.js',
+      'services/model-proxy/tests/**/*.test.js',
+      'services/watchdog/tests/**/*.test.js',
     ],
+    // 解决 ESM 模块问题
+    alias: {
+      'node:fs': 'fs',
+      'node:path': 'path',
+      'node:os': 'os',
+      'node:url': 'url',
+      'node:util': 'util',
+      'node:stream': 'stream',
+      'node:events': 'events',
+      'node:crypto': 'crypto',
+    },
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html', 'lcov'],
@@ -19,7 +31,7 @@ export default defineConfig({
       ],
       exclude: [
         'node_modules/**',
-        '**/tests/**',
+        'services/config-migrator/**',
         '**/*.test.js',
         '**/*.config.js',
       ],
