@@ -638,19 +638,41 @@ async function runSetup() {
   console.log('   openclaw-services doctor       # 健康检查\n');
 }
 
+// 检查可用的包管理器
+function getPackageManager() {
+  if (fs.existsSync(path.join(process.env.HOME, '.bun/bin/bun'))) {
+    return 'bun';
+  }
+  if (fs.existsSync('/opt/homebrew/bin/pnpm')) {
+    return 'pnpm';
+  }
+  if (fs.existsSync('/opt/homebrew/bin/npm')) {
+    return 'npm';
+  }
+  return 'bun'; // 默认
+}
+
 // 安装服务模块
 async function installServices() {
-  const srcDir = path.join(process.env.HOME, 'workspace/openclaw-services/services');
+  // 优先使用环境变量，其次使用相对路径
+  const srcBase = process.env.OPENCLAW_SERVICES_SRC || path.join(process.env.HOME, 'workspace/openclaw-services');
+  const pkgManager = getPackageManager();
   
   const services = ['model-proxy', 'watchdog', 'config-migrator'];
   
   for (const service of services) {
-    const srcPath = path.join(srcDir, service);
+    let srcPath = path.join(srcBase, 'services', service);
     const destPath = path.join(SERVICES_DIR, service);
     
     if (!fs.existsSync(srcPath)) {
-      log('yellow', `   ⚠️ 源码不存在: ${service}`);
-      continue;
+      // 尝试从当前项目路径
+      const localSrc = path.join(path.dirname(__filename), '..', 'services', service);
+      if (fs.existsSync(localSrc)) {
+        srcPath = localSrc;
+      } else {
+        log('yellow', `   ⚠️ 源码不存在: ${service}`);
+        continue;
+      }
     }
     
     // 复制服务目录
@@ -659,8 +681,11 @@ async function installServices() {
     // 安装依赖
     if (fs.existsSync(path.join(destPath, 'package.json'))) {
       try {
-        execSync('bun install', { cwd: destPath, stdio: 'pipe' });
-        log('green', `   ✅ ${service}`);
+        const installCmd = pkgManager === 'bun' ? 'bun install' 
+          : pkgManager === 'pnpm' ? 'pnpm install' 
+          : 'npm install';
+        execSync(installCmd, { cwd: destPath, stdio: 'pipe' });
+        log('green', `   ✅ ${service} (${pkgManager})`);
       } catch (err) {
         log('red', `   ❌ ${service} 依赖安装失败`);
       }
@@ -807,11 +832,17 @@ async function main() {
       // 解析 config 后的选项
       const configOptions = {};
       let configSubCmd = subCmd;
-      for (let i = 2; i < args.length; i++) {
-        if (args[i].startsWith('--')) {
-          const key = args[i].slice(2);
-          configOptions[key] = args[i + 1] || true;
-          i++;
+      
+      // 处理 --help
+      if (subCmd === '--help' || subCmd === '-h') {
+        configSubCmd = '--help';
+      } else {
+        for (let i = 2; i < args.length; i++) {
+          if (args[i].startsWith('--')) {
+            const key = args[i].slice(2);
+            configOptions[key] = args[i + 1] || true;
+            i++;
+          }
         }
       }
       await configCommand(configSubCmd, configOptions);
