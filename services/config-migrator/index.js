@@ -97,7 +97,8 @@ const commands = {
     }
   },
 
-  restore: async (backupFile, options) => {
+  restore: async (options) => {
+    const backupFile = options.backupFile;
     const backups = await listBackups();
     
     let targetBackup;
@@ -205,7 +206,8 @@ const commands = {
     }
   },
 
-  diff: async (backupFile) => {
+  diff: async (options) => {
+    const backupFile = options.diff;
     const backups = await listBackups();
     
     if (backups.length === 0) {
@@ -263,7 +265,7 @@ async function main() {
   }
   
   if (commands[command]) {
-    await commands[command](targetArg, options);
+    await commands[command](options);
   } else {
     console.log(`
 OpenClaw Config Migrator
