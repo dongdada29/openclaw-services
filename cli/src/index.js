@@ -87,6 +87,8 @@ ${colors.yellow}命令:${colors.reset}
   ${colors.green}health${colors.reset}         运行健康监控
   ${colors.green}watchdog${colors.reset}       运行 watchdog
 
+  ${colors.green}config${colors.reset}         配置管理 (backup/restore/sync/migrate)
+
   ${colors.green}launchd list${colors.reset}   列出 LaunchAgent 状态
   ${colors.green}launchd install${colors.reset} 注册 LaunchAgent
   ${colors.green}launchd uninstall${colors.reset} 卸载 LaunchAgent
@@ -660,6 +662,38 @@ async function launchdCommand(subCmd, serviceName) {
   }
 }
 
+// 配置管理命令
+async function configCommand(subCmd, options) {
+  const configMigratorDir = path.join(SERVICES_DIR, 'config-migrator');
+  const configScript = path.join(configMigratorDir, 'index.js');
+
+  if (!fs.existsSync(configMigratorDir)) {
+    log('red', '❌ config-migrator 未安装');
+    log('yellow', '   请先运行: openclaw-services setup');
+    return;
+  }
+
+  // 构建参数
+  const args = [];
+  if (subCmd) args.push(subCmd);
+
+  // 添加选项
+  for (const [key, value] of Object.entries(options)) {
+    if (value === true) {
+      args.push(`--${key}`);
+    } else if (value) {
+      args.push(`--${key}`, String(value));
+    }
+  }
+
+  try {
+    const cmd = `bun run "${configScript}" ${args.join(' ')}`;
+    execSync(cmd, { stdio: 'inherit', cwd: configMigratorDir, shell: true });
+  } catch (err) {
+    log('red', `❌ config 命令执行失败: ${err.message}`);
+  }
+}
+
 // 主入口
 async function main() {
   const args = process.argv.slice(2);
@@ -685,6 +719,20 @@ async function main() {
     case 'logs': await showLogs(subCmd); break;
     case 'health': runScript('health-monitor'); break;
     case 'watchdog': runScript('openclaw-watchdog'); break;
+    case 'config': {
+      // 解析 config 后的选项
+      const configOptions = {};
+      let configSubCmd = subCmd;
+      for (let i = 2; i < args.length; i++) {
+        if (args[i].startsWith('--')) {
+          const key = args[i].slice(2);
+          configOptions[key] = args[i + 1] || true;
+          i++;
+        }
+      }
+      await configCommand(configSubCmd, configOptions);
+      break;
+    }
     case 'launchd': await launchdCommand(subCmd, thirdArg); break;
     case '--help':
     case '-h':

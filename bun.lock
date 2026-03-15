@@ -23,7 +23,7 @@
       },
     },
     "services/config-migrator": {
-      "name": "@openclaw/config-migrator",
+      "name": "@openclaw/services-config-migrator",
       "version": "1.0.0",
       "dependencies": {
         "archiver": "^7.0.0",
@@ -36,7 +36,7 @@
       },
     },
     "services/model-proxy": {
-      "name": "@openclaw/service-model-proxy",
+      "name": "@openclaw/services-model-proxy",
       "version": "1.4.0",
       "dependencies": {
         "async-mutex": "^0.5.0",
@@ -130,11 +130,11 @@
 
     "@jridgewell/trace-mapping": ["@jridgewell/trace-mapping@0.3.31", "", { "dependencies": { "@jridgewell/resolve-uri": "^3.1.0", "@jridgewell/sourcemap-codec": "^1.4.14" } }, "sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw=="],
 
-    "@openclaw/config-migrator": ["@openclaw/config-migrator@workspace:services/config-migrator"],
-
-    "@openclaw/service-model-proxy": ["@openclaw/service-model-proxy@workspace:services/model-proxy"],
-
     "@openclaw/services-cli": ["@openclaw/services-cli@workspace:cli"],
+
+    "@openclaw/services-config-migrator": ["@openclaw/services-config-migrator@workspace:services/config-migrator"],
+
+    "@openclaw/services-model-proxy": ["@openclaw/services-model-proxy@workspace:services/model-proxy"],
 
     "@openclaw/services-watchdog": ["@openclaw/services-watchdog@workspace:services/watchdog"],
 
