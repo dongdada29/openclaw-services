@@ -10,7 +10,7 @@
 ```
 项目名称: openclaw-services
 项目位置: /Volumes/SSD_M2_1/workspace/openclaw-services
-版本: 2026.3.21
+版本: v1.2.0
 状态: 活跃开发
 ```
 

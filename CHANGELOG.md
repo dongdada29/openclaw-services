@@ -2,7 +2,7 @@
 
 All notable changes to the openclaw-services project will be documented in this file.
 
-## [2026.3.21] - 2026-03-21
+## [1.2.0] - 2026-03-21
 
 ### Added
 - **扩展版 Watchdog** - 支持 Gateway 监控
@@ -61,12 +61,34 @@ All notable changes to the openclaw-services project will be documented in this 
 ### Technical Details
 - **M4 OpenClaw 版本**: 2026.3.13 (61d171a)
 - **M1 OpenClaw 版本**: 2026.3.13 (61d171a)
-- **Watchdog 版本**: 扩展版 v1.0.0
+- **Watchdog 版本**: v1.2.0 (扩展版)
 - **支持的 Node 版本**: v22.x
 
 ### Known Issues
 - **日志重复**: 日志中每个检查项出现两次（待修复）
 - **Discord 时间窗口**: Discord 连接检查缺少时间窗口验证（待改进）
+
+---
+
+## [1.1.0] - 2026-03-15
+
+### Added
+- OpenClaw Services 项目初始化
+- Model-Proxy 服务（LLM API 代理）
+- Watchdog 服务（基础版，只监控 Proxy）
+- 配置迁移服务
+- CLI 工具
+
+### Changed
+- Watchdog 改为持续运行模式（每 60 秒检查一次）
+
+---
+
+## [1.0.0] - 2026-03-08
+
+### Added
+- 项目创建
+- 基础架构搭建
 
 ---
 
