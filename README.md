@@ -44,10 +44,58 @@ openclaw-services doctor
 | 服务 | 模式 | 功能 |
 |------|------|------|
 | model-proxy | KeepAlive | LLM API 代理（持续运行） |
-| watchdog | KeepAlive | 自动更新 OpenClaw + Proxy 故障保护（持续运行） |
+| watchdog | KeepAlive | 综合监控 + 自动故障恢复（持续运行） |
 | health | 每天 9:00 | 健康检查 + 日志清理 |
+| health-check | 每天 00:00 | 综合健康检查（M4） |
+| backup | 每天 02:00, 14:00 | 自动备份配置（M4） |
 
-> **注意**: watchdog 已改为持续运行模式（每 60 秒检查一次），确保 Proxy 故障时能自动恢复。
+> **注意**: watchdog 已升级为扩展版，支持 Gateway 监控和自动重启。
+
+## 扩展版 Watchdog（v1.0.0）
+
+### 新增监控项
+
+```bash
+# 原版功能
+✅ Model-Proxy 健康检查 (localhost:3456/_health)
+✅ Proxy 故障自动恢复
+
+# 扩展版新增（M4）
+✅ Gateway 进程状态检测 (pgrep)
+✅ Gateway Health API 检测 (localhost:18789/health)
+✅ Discord 连接状态检测 (日志分析)
+✅ Gateway 崩溃自动重启
+✅ 综合健康检查报告
+```
+
+### 使用方法
+
+```bash
+# 持续监控（默认 60 秒间隔）
+node ~/.openclaw/services/watchdog/index.js watch
+
+# 单次健康检查
+node ~/.openclaw/services/watchdog/index.js check
+
+# 执行自动修复
+node ~/.openclaw/services/watchdog/index.js heal
+```
+
+### 日志
+
+```bash
+# 查看实时监控日志
+tail -f ~/.openclaw/logs/watchdog.log
+
+# 输出示例
+[2026-03-21T07:37:29.439Z] [INFO] 👀 开始综合监控 (间隔: 60s)
+[2026-03-21T07:37:29.440Z] [INFO] --- 健康检查开始 ---
+[2026-03-21T07:37:29.468Z] [INFO] ✅ Proxy 正常
+[2026-03-21T07:37:29.479Z] [INFO] ✅ Gateway 进程运行中
+[2026-03-21T07:37:29.483Z] [INFO] ✅ Gateway 健康检查通过
+[2026-03-21T07:37:29.486Z] [INFO] ✅ Discord 已连接
+[2026-03-21T07:37:29.487Z] [INFO] --- 健康检查完成 ---
+```
 
 ## CLI 命令
 
