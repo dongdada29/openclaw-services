@@ -58,12 +58,22 @@ export function rewritePath(req, provider) {
     result.provider.providerId = 'zhipu-coding';
   }
 
-  // /minimax/* → MiniMax (Anthropic 兼容 API)
+  // /minimax/* → MiniMax
   if (targetPath.startsWith('/minimax')) {
-    result.path = targetPath.replace('/minimax', '/anthropic');
     result.provider.host = 'api.minimaxi.com';
     result.provider.name = 'MiniMax';
     result.provider.providerId = 'minimax';
+    // 根据请求路径自动选择 API 格式
+    // /minimax/anthropic/* → Anthropic 兼容 API
+    // /minimax/openai/* 或 /minimax/v1/* → OpenAI 兼容 API
+    if (targetPath.startsWith('/minimax/anthropic')) {
+      result.path = targetPath.replace('/minimax/anthropic', '/anthropic');
+    } else if (targetPath.startsWith('/minimax/v1/')) {
+      result.path = targetPath.replace('/minimax/v1', '/v1');
+    } else {
+      // 默认 OpenAI 兼容格式
+      result.path = targetPath.replace('/minimax', '/v1');
+    }
   }
 
   // /claude-proxy/* → Claude Proxy (co.yes.vg)
