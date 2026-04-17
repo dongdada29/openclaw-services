@@ -17,6 +17,51 @@ const DATA_DIR = path.join(OPENCLAW_SERVICES_HOME, 'data');
 const LOG_DIR = path.join(OPENCLAW_SERVICES_HOME, 'logs');
 const PROXY_PORT = 3456;
 const PROXY_URL = `http://localhost:${PROXY_PORT}`;
+
+// Discord Webhook 配置
+const WEBHOOK_FILE = path.join(OPENCLAW_SERVICES_HOME, 'watchdog-webhook.json');
+let webhookUrl = null;
+
+function loadWebhookConfig() {
+  try {
+    if (fs.existsSync(WEBHOOK_FILE)) {
+      const config = JSON.parse(fs.readFileSync(WEBHOOK_FILE, 'utf-8'));
+      webhookUrl = config.webhookUrl;
+      if (webhookUrl) {
+        log('cyan', '📩 Discord Webhook 已加载');
+      }
+    }
+  } catch (err) {
+    log('yellow', `⚠️ 加载 Webhook 配置失败: ${err.message}`);
+  }
+}
+
+async function sendDiscordAlert(title, message, level = 'error') {
+  if (!webhookUrl) return false;
+  
+  const colors = { error: 15158332, warn: 16776960, info: 3447003 };
+  const payload = {
+    embeds: [{
+      title,
+      description: message,
+      color: colors[level] || colors.error,
+      timestamp: new Date().toISOString(),
+      footer: { text: 'OpenClaw Watchdog' }
+    }]
+  };
+  
+  try {
+    const response = await fetch(webhookUrl, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    return response.ok;
+  } catch (err) {
+    log('red', `发送告警失败: ${err.message}`);
+    return false;
+  }
+}
 const MODELS_FILE = path.join(process.env.HOME, '.openclaw/agents/main/agent/models.json');
 const BACKUP_FILE = path.join(DATA_DIR, 'openclaw-models-original.json');
 const RECOVERY_FLAG = path.join(DATA_DIR, '.proxy-recovery-mode');
@@ -203,6 +248,9 @@ async function healthCheck() {
 
   log('red', '❌ Proxy 故障，尝试恢复...');
 
+  // 发送告警
+  await sendDiscordAlert('🚨 Proxy 故障', '检测到 Model-Proxy 服务异常，正在尝试恢复...', 'error');
+
   // 检查是否在 proxy 模式
   if (fs.existsSync(MODELS_FILE)) {
     const content = fs.readFileSync(MODELS_FILE, 'utf-8');
@@ -239,6 +287,11 @@ async function watch(intervalMs = 60000) {
       retryCount++;
       log('red', `[${timestamp}] ❌ Proxy 故障 (重试 ${retryCount}/${maxRetries})`);
 
+      // 第一次失败时发送告警
+      if (retryCount === 1) {
+        await sendDiscordAlert('🚨 Proxy 故障', `Model-Proxy 服务异常，正在尝试恢复 (${retryCount}/${maxRetries})`, 'error');
+      }
+
       if (retryCount <= maxRetries) {
         await recoverToDirect();
 
@@ -261,6 +314,7 @@ export async function main() {
   const cmd = args[0];
 
   ensureDirs();
+  loadWebhookConfig();  // 加载 Webhook 配置
 
   switch (cmd) {
     case 'check':
