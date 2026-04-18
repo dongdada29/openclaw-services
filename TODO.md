@@ -6,10 +6,12 @@
 
 ## 🔴 高优先级
 
-### [ ] 1. MiniMax 529 错误自动 fallback
+### [x] 1. MiniMax 529 错误自动 fallback
 - **问题**: MiniMax 过载返回 529，OpenClaw 无法响应
-- **方案**: 研究 OpenClaw fallback 配置正确格式
-- **状态**: 待调研
+- **方案**: 配置 OpenClaw model fallback 格式
+- **涉及**: 两台机器的 openclaw.json
+- **状态**: ✅ 已配置 (2026-04-18)
+- **说明**: primary=zai/glm-5, fallbacks=[minimax/MiniMax-M2.7, tencent/glm-5]
 
 ### [x] 2. 添加 Discord Webhook 告警
 - **问题**: 服务故障时无通知
@@ -28,10 +30,11 @@
 
 ## 🟡 中优先级
 
-### [ ] 4. 同步源码到运行目录
-- **问题**: 修改 `/Users/louis/workspace/openclaw-services/` 后需要手动复制到 `~/.openclaw/services/`
-- **方案**: 添加自动同步脚本或安装命令
-- **状态**: 待开发
+### [x] 4. 同步源码到运行目录
+- **问题**: 修改 `/Users/louis/workspace/openclaw-services/` 后需要手动复制
+- **方案**: 添加 `scripts/sync-to-runtime.sh` 同步脚本
+- **状态**: ✅ 已完成 (2026-04-18)
+- **使用**: `bash scripts/sync-to-runtime.sh`
 
 ### [ ] 5. 修复 pkill 模式过宽
 - **问题**: `pkill -f "(node|bun).*model-proxy"` 可能误杀其他进程
