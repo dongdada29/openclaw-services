@@ -119,7 +119,7 @@ function readPidFile() {
     if (fs.existsSync(PID_FILE)) {
       return parseInt(fs.readFileSync(PID_FILE, 'utf-8').trim(), 10);
     }
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
   return null;
 }
 
@@ -208,7 +208,7 @@ async function stopProxy() {
     }
   }
 
-  try { fs.unlinkSync(PID_FILE); } catch {}
+  try { fs.unlinkSync(PID_FILE); } catch (err) { debug('操作失败:', err.message); }
   return true;
 }
 

@@ -43,11 +43,11 @@
 - **修复**: `openclaw-services|openclaw.*model-proxy|openclaw-model-proxy`
 - **新增**: `OPENCLAW_PROXY_PID_FILE` 环境变量支持
 
-### [ ] 6. spawn 运行时检测
+### [x] 6. spawn 运行时检测 ✅ (2026-04-20)
 - **问题**: 硬编码 `bun`，某些环境可能没有
-- **方案**: 检测 bun/node 可用性，自动选择
+- **方案**: `detectRuntime()` 自动检测 bun/node
 - **涉及**: `cli/src/index.js`
-- **状态**: 待修复
+- **修复**: 优先 bun，fallback node，都没有时报错
 
 ### [ ] 7. 空 catch 块处理
 - **问题**: 空 catch 吞掉错误，难调试

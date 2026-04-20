@@ -9,6 +9,10 @@ import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
+// Debug 模式
+const DEBUG = process.env.OPENCLAW_DEBUG === '1' || process.env.OPENCLAW_DEBUG === 'true';
+function debug(...args) { if (DEBUG) console.log('[debug]', ...args); }
+
 // 读取版本信息
 const __filename = fileURLToPath(import.meta.url);
 const pkgPath = path.join(path.dirname(__filename), '../package.json');
@@ -16,7 +20,7 @@ let VERSION = '1.0.0';
 try {
   const pkg = JSON.parse(fs.readFileSync(pkgPath, 'utf-8'));
   VERSION = pkg.version;
-} catch {}
+} catch (err) { debug('操作失败:', err.message); }
 
 // 配置常量
 const OPENCLAW_SERVICES_HOME = process.env.OPENCLAW_SERVICES_HOME || path.join(process.env.HOME, '.openclaw');
@@ -148,7 +152,7 @@ function readPidFile() {
       const pid = parseInt(fs.readFileSync(PROXY_PID_FILE, 'utf-8').trim(), 10);
       if (!isNaN(pid)) return pid;
     }
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
   return null;
 }
 
@@ -156,14 +160,14 @@ function readPidFile() {
 function writePidFile(pid) {
   try {
     fs.writeFileSync(PROXY_PID_FILE, String(pid));
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
 }
 
 // 删除 PID 文件
 function removePidFile() {
   try {
     fs.unlinkSync(PROXY_PID_FILE);
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
 }
 
 // 检查进程是否存在
@@ -528,7 +532,7 @@ function installLaunchd(serviceName) {
   // 卸载旧的（如果存在）
   try {
     execSync('launchctl', ['unload', plistPath], { stdio: 'pipe' });
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
 
   // 加载新的
   try {
@@ -561,7 +565,7 @@ function uninstallLaunchd(serviceName) {
   try {
     execSync(`launchctl unload "${plistPath}" 2>/dev/null`, { stdio: 'pipe' });
     log('green', `✅ 已卸载: ${service.label}`);
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
 
   // 删除文件
   if (fs.existsSync(plistPath)) {
@@ -585,7 +589,7 @@ function listLaunchd() {
     try {
       execSync(`launchctl list ${service.label} 2>/dev/null`, { stdio: 'pipe' });
       loaded = true;
-    } catch {}
+    } catch (err) { debug('操作失败:', err.message); }
 
     const status = loaded ? '🟢 运行中' : (installed ? '🟡 已安装' : '⚪ 未安装');
     console.log(`   ${status}  ${service.name}${service.schedule ? ` (${service.schedule})` : ''}`);
@@ -653,12 +657,12 @@ function detectRuntime() {
   try {
     execSync('which bun', { stdio: 'pipe' });
     return 'bun';
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
   // fallback 到 node
   try {
     execSync('which node', { stdio: 'pipe' });
     return 'node';
-  } catch {}
+  } catch (err) { debug('操作失败:', err.message); }
   return null;
 }
 
