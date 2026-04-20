@@ -30,7 +30,10 @@ const LAUNCHAGENTS_DIR = path.join(process.env.HOME, 'Library', 'LaunchAgents');
 const PROXY_HOST = 'localhost';
 const PROXY_PORT = 3456;
 const PROXY_BASE_URL = `http://${PROXY_HOST}:${PROXY_PORT}`;
-const PROXY_PID_FILE = '/tmp/openclaw-model-proxy.pid';
+const PROXY_PID_FILE = process.env.OPENCLAW_PROXY_PID_FILE || '/tmp/openclaw-model-proxy.pid';
+
+// 更精确的进程匹配模式（避免误杀）
+const PROXY_PROCESS_PATTERN = 'openclaw-services|openclaw.*model-proxy|openclaw-model-proxy';
 
 // 请求超时配置
 const HEALTH_CHECK_TIMEOUT = 5000;
@@ -252,9 +255,9 @@ async function stopService(service) {
         log('yellow', `⚠️ 停止进程失败: ${err.message}`);
       }
     } else {
-      // 备用方案：使用 pkill
+      // 备用方案：使用更精确的 pkill 模式
       try {
-        execSync('pkill -f "(node|bun).*model-proxy"', { stdio: 'pipe' });
+        execSync(`pkill -f "${PROXY_PROCESS_PATTERN}"`, { stdio: 'pipe' });
         log('green', '✅ model-proxy 已停止');
       } catch {
         log('yellow', '⚠️ model-proxy 未在运行');

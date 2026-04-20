@@ -17,6 +17,10 @@ const DATA_DIR = path.join(OPENCLAW_SERVICES_HOME, 'data');
 const LOG_DIR = path.join(OPENCLAW_SERVICES_HOME, 'logs');
 const PROXY_PORT = 3456;
 const PROXY_URL = `http://localhost:${PROXY_PORT}`;
+const PID_FILE = process.env.OPENCLAW_PROXY_PID_FILE || '/tmp/openclaw-model-proxy.pid';
+
+// 更精确的进程匹配模式（避免误杀其他进程）
+const PROXY_PROCESS_PATTERN = 'openclaw-services|openclaw.*model-proxy|openclaw-model-proxy';
 
 // Discord Webhook 配置
 const WEBHOOK_FILE = path.join(OPENCLAW_SERVICES_HOME, 'watchdog-webhook.json');
@@ -65,8 +69,6 @@ async function sendDiscordAlert(title, message, level = 'error') {
 const MODELS_FILE = path.join(process.env.HOME, '.openclaw/agents/main/agent/models.json');
 const BACKUP_FILE = path.join(DATA_DIR, 'openclaw-models-original.json');
 const RECOVERY_FLAG = path.join(DATA_DIR, '.proxy-recovery-mode');
-const PID_FILE = '/tmp/openclaw-model-proxy.pid';
-
 // 颜色输出
 const colors = {
   reset: '\x1b[0m',
@@ -197,9 +199,9 @@ async function stopProxy() {
       log('yellow', `⚠️ 停止进程失败: ${err.message}`);
     }
   } else {
-    // 备用方案
+    // 备用方案：使用更精确的 pkill 模式
     try {
-      execSync('pkill -f "node.*model-proxy"', { stdio: 'pipe' });
+      execSync(`pkill -f "${PROXY_PROCESS_PATTERN}"`, { stdio: 'pipe' });
       log('green', '✅ model-proxy 已停止');
     } catch {
       log('yellow', '⚠️ model-proxy 未在运行');
