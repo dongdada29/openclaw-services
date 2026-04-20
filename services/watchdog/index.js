@@ -78,6 +78,25 @@ const colors = {
   cyan: '\x1b[36m',
 };
 
+// 结构化日志配置
+const LOG_JSON = process.env.OPENCLAW_LOG_JSON === '1' || process.env.OPENCLAW_LOG_JSON === 'true';
+
+function structuredLog(level, module, message, meta = {}) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    level,
+    module,
+    message,
+    ...meta,
+  };
+  if (LOG_JSON) {
+    console.log(JSON.stringify(entry));
+  } else {
+    const prefix = `[${level.toUpperCase()}] [${module}]`;
+    console.log(prefix, message, Object.keys(meta).length ? JSON.stringify(meta) : '');
+  }
+}
+
 const log = (color, ...args) => console.log(colors[color] || '', ...args, colors.reset);
 
 // 确保目录存在
