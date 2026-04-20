@@ -72,9 +72,12 @@
 - **涉及**: `cli/src/index.js`, `services/watchdog/index.js`
 - **修复**: `OPENCLAW_LOG_JSON=1` 输出 JSON 格式
 
-### [ ] 10. 添加单元测试
-- **问题**: 缺少测试覆盖
-- **状态**: 待添加
+### [x] 10. 添加单元测试 ✅ (2026-04-20)
+- **状态**: 测试基础设施已完备
+- **watchdog**: 26 tests passing (vitest)
+- **cli**: 7 tests passing
+- **总计**: 33 tests passing
+- **运行**: `npx vitest run` (各模块目录下)
 
 ### [ ] 11. TypeScript 重写
 - **问题**: 纯 JS 缺少类型检查
