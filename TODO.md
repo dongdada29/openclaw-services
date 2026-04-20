@@ -36,11 +36,12 @@
 - **状态**: ✅ 已完成 (2026-04-18)
 - **使用**: `bash scripts/sync-to-runtime.sh`
 
-### [ ] 5. 修复 pkill 模式过宽
+### [x] 5. 修复 pkill 模式过宽 ✅ (2026-04-20)
 - **问题**: `pkill -f "(node|bun).*model-proxy"` 可能误杀其他进程
-- **方案**: 使用更精确的匹配或 PID 文件
+- **方案**: 使用更精确的匹配 + PID 文件优先
 - **涉及**: `cli/src/index.js`, `services/watchdog/index.js`
-- **状态**: 待修复
+- **修复**: `openclaw-services|openclaw.*model-proxy|openclaw-model-proxy`
+- **新增**: `OPENCLAW_PROXY_PID_FILE` 环境变量支持
 
 ### [ ] 6. spawn 运行时检测
 - **问题**: 硬编码 `bun`，某些环境可能没有

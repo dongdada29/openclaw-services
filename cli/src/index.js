@@ -206,7 +206,13 @@ async function startService(service) {
 
     // 启动进程
     const proxyLog = path.join(LOG_DIR, 'model-proxy.log');
-    const child = spawn('bun', ['server.js'], {
+    const runtime = detectRuntime();
+    if (!runtime) {
+      log('red', '❌ 找不到可用的运行时 (bun/node)');
+      return false;
+    }
+    log('cyan', `🚀 使用 ${runtime} 启动 model-proxy...`);
+    const child = spawn(runtime, ['server.js'], {
       cwd: proxyDir,
       detached: true,
       stdio: ['ignore', fs.openSync(proxyLog, 'a'), fs.openSync(proxyLog, 'a')]
@@ -639,6 +645,21 @@ async function runSetup() {
   console.log('   openclaw-services status       # 查看状态');
   console.log('   openclaw-services proxy enable # 启用 proxy 模式');
   console.log('   openclaw-services doctor       # 健康检查\n');
+}
+
+// 检测可用的 JavaScript 运行时
+function detectRuntime() {
+  // 优先使用 bun（启动快）
+  try {
+    execSync('which bun', { stdio: 'pipe' });
+    return 'bun';
+  } catch {}
+  // fallback 到 node
+  try {
+    execSync('which node', { stdio: 'pipe' });
+    return 'node';
+  } catch {}
+  return null;
 }
 
 // 检查可用的包管理器
