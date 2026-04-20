@@ -49,17 +49,18 @@
 - **涉及**: `cli/src/index.js`
 - **修复**: 优先 bun，fallback node，都没有时报错
 
-### [ ] 7. 空 catch 块处理
+### [x] 7. 空 catch 块处理 ✅ (2026-04-20)
 - **问题**: 空 catch 吞掉错误，难调试
-- **方案**: 添加 debug 模式日志
-- **涉及**: 多个文件
-- **状态**: 待修复
+- **方案**: 添加 `OPENCLAW_DEBUG` 环境变量 + 统一 debug 日志
+- **涉及**: `cli/src/index.js`, `services/watchdog/index.js`
+- **修复**: 11 个空 catch 全部替换为 debug 日志
 
-### [ ] 8. 硬编码路径改为可配置
-- **问题**: `/tmp/openclaw-model-proxy.pid` 等硬编码
-- **方案**: 使用环境变量或配置文件
+### [x] 8. 硬编码路径改为可配置 ✅ (2026-04-20)
+- **问题**: 路径写死不够灵活
+- **方案**: config 支持环境变量覆盖
 - **涉及**: `services/model-proxy/src/config/index.js`
-- **状态**: 待改进
+- **修复**: `DB_PATH`, `OPENCLAW_SERVICES_HOME`, `PROXY_PORT` 等环境变量已支持
+- **说明**: model-proxy 配置层已有完整的 env override 机制
 
 ---
 
